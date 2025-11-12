@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Video, StopCircle, Camera } from 'lucide-react';
+import { ArrowLeft, Video, StopCircle, Play, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { mediapipeProcessor } from '@/services/mediapipeProcessor';
 
@@ -12,29 +12,95 @@ interface LiveRecorderProps {
   onComplete: (results: any) => void;
 }
 
+// Workout-specific tips and suggestions
+const WORKOUT_TIPS: { [key: string]: string[] } = {
+  'Push-ups': [
+    '💪 Keep your body in a straight line',
+    '👀 Look slightly ahead, not down',
+    '🔽 Lower until chest nearly touches ground',
+    '⬆️ Push up explosively',
+    '🫁 Breathe out as you push up',
+    '✋ Hands shoulder-width apart'
+  ],
+  'Pull-ups': [
+    '💪 Start from dead hang',
+    '👆 Pull until chin clears bar',
+    '📏 Full range of motion',
+    '🚫 No swinging or kipping',
+    '🫁 Breathe out as you pull up',
+    '⬇️ Control the descent'
+  ],
+  'Sit-ups': [
+    '🦵 Keep knees bent at 90°',
+    '🙌 Arms across chest',
+    '⬆️ Curl up to touch knees',
+    '⬇️ Lower with control',
+    '🫁 Exhale on the way up',
+    '💪 Engage your core'
+  ],
+  'Vertical Jump': [
+    '🦵 Bend knees for power',
+    '🙌 Swing arms upward',
+    '🚀 Explode upward',
+    '🎯 Land softly',
+    '⚖️ Keep balance',
+    '🔄 Reset between jumps'
+  ],
+  'Shuttle Run': [
+    '🏃 Sprint at full speed',
+    '🔄 Turn explosively',
+    '👟 Stay on your toes',
+    '💨 Maintain momentum',
+    '🎯 Touch the line',
+    '⚡ Quick direction changes'
+  ]
+};
+
 const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPreviewing, setIsPreviewing] = useState(true);
+  const [stage, setStage] = useState<'preview' | 'recording' | 'review'>('preview');
   const [currentReps, setCurrentReps] = useState(0);
   const [currentMetrics, setCurrentMetrics] = useState<any>(null);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [allReps, setAllReps] = useState<any[]>([]);
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [currentTip, setCurrentTip] = useState(0);
+  const [formFeedback, setFormFeedback] = useState<string>('');
+  
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const tipIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
-  const processedFramesRef = useRef<ImageData[]>([]);
-  const startTimeRef = useRef<number>(0);
+  const animationFrameRef = useRef<number | null>(null);
+  const allRepsRef = useRef<any[]>([]);
 
-  // Start camera preview
+  // Get tips for current workout
+  const tips = WORKOUT_TIPS[activityName] || WORKOUT_TIPS['Push-ups'];
+
+  // Start camera and MediaPipe preview
   useEffect(() => {
     startCamera();
     return () => {
-      stopCamera();
+      cleanup();
     };
   }, []);
+
+  // Rotate tips during preview
+  useEffect(() => {
+    if (stage === 'preview') {
+      tipIntervalRef.current = setInterval(() => {
+        setCurrentTip((prev) => (prev + 1) % tips.length);
+      }, 3000);
+    }
+    return () => {
+      if (tipIntervalRef.current) {
+        clearInterval(tipIntervalRef.current);
+      }
+    };
+  }, [stage, tips.length]);
 
   const startCamera = async () => {
     try {
@@ -52,46 +118,99 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         await videoRef.current.play();
+        
+        // Initialize MediaPipe
+        await mediapipeProcessor.initialize();
+        
+        // Start preview with MediaPipe
+        startPreview();
       }
       
-      toast.success('Camera ready!');
+      toast.success('Camera ready! Position yourself in frame');
     } catch (error) {
       console.error('Camera error:', error);
       toast.error('Failed to access camera. Please check permissions.');
     }
   };
 
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+  const startPreview = () => {
+    if (!videoRef.current || !previewCanvasRef.current) return;
+
+    const canvas = previewCanvasRef.current;
+    const video = videoRef.current;
+    
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    
+    const ctx = canvas.getContext('2d')!;
+
+    const renderPreview = async () => {
+      if (stage !== 'preview' || !video || !canvas) return;
+
+      // Draw video frame
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Process with MediaPipe for skeleton overlay
+      try {
+        await mediapipeProcessor.pose?.send({ image: video });
+      } catch (e) {
+        console.error('MediaPipe error:', e);
+      }
+
+      animationFrameRef.current = requestAnimationFrame(renderPreview);
+    };
+
+    // Setup MediaPipe results callback
+    if (mediapipeProcessor.pose) {
+      mediapipeProcessor.pose.onResults((results: any) => {
+        if (stage === 'preview' && results.poseLandmarks) {
+          // Draw skeleton on preview
+          const mp = (window as any);
+          if (mp.drawConnectors && mp.drawLandmarks) {
+            mp.drawConnectors(ctx, results.poseLandmarks, mp.POSE_CONNECTIONS, {
+              color: '#00FF00',
+              lineWidth: 2
+            });
+            mp.drawLandmarks(ctx, results.poseLandmarks, {
+              color: '#FFFFFF',
+              fillColor: '#00FF00',
+              radius: 3
+            });
+          }
+        }
+      });
     }
-    if (recordingIntervalRef.current) {
-      clearInterval(recordingIntervalRef.current);
-    }
+
+    renderPreview();
   };
 
   const startRecording = async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
-    setIsPreviewing(false);
-    setIsRecording(true);
+    setStage('recording');
     setRecordingTime(0);
     setCurrentReps(0);
-    setAllReps([]);
     recordedChunksRef.current = [];
-    processedFramesRef.current = [];
-    startTimeRef.current = Date.now();
+    allRepsRef.current = [];
 
-    // Setup canvas dimensions
-    canvasRef.current.width = 1280;
-    canvasRef.current.height = 720;
+    // Stop preview animation
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
 
-    // Setup MediaRecorder to record the canvas
-    const canvasStream = canvasRef.current.captureStream(30);
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    
+    const ctx = canvas.getContext('2d')!;
+
+    // Setup MediaRecorder
+    const canvasStream = canvas.captureStream(30);
     const recorder = new MediaRecorder(canvasStream, {
       mimeType: 'video/webm;codecs=vp9',
-      videoBitsPerSecond: 2500000
+      videoBitsPerSecond: 5000000
     });
 
     recorder.ondataavailable = (e) => {
@@ -100,121 +219,173 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
       }
     };
 
-    recorder.start();
+    recorder.onstop = () => {
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      setRecordedBlob(blob);
+      setStage('review');
+    };
+
     mediaRecorderRef.current = recorder;
+    recorder.start(100);
 
     // Start recording timer
+    const startTime = Date.now();
     recordingIntervalRef.current = setInterval(() => {
-      setRecordingTime(prev => prev + 1);
+      setRecordingTime(Math.floor((Date.now() - startTime) / 1000));
     }, 1000);
 
-    try {
-      // Start MediaPipe live processing
-      await mediapipeProcessor.processLiveCamera(
-        videoRef.current,
-        activityName,
-        (canvas, reps, stats) => {
-          // Draw processed frame to canvas (with skeleton overlay)
-          if (canvasRef.current && canvas) {
-            const ctx = canvasRef.current.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(canvas, 0, 0, canvasRef.current.width, canvasRef.current.height);
+    // Start MediaPipe processing with rep counting
+    const detector = (await import('@/services/videoDetectors')).getVideoDetectorForActivity(activityName);
+    
+    const renderRecording = async () => {
+      if (stage !== 'recording' || !video || !canvas) return;
+
+      // Draw video frame
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Process with MediaPipe
+      try {
+        await mediapipeProcessor.pose?.send({ image: video });
+      } catch (e) {
+        console.error('MediaPipe error:', e);
+      }
+
+      animationFrameRef.current = requestAnimationFrame(renderRecording);
+    };
+
+    // Setup MediaPipe results callback for recording
+    if (mediapipeProcessor.pose) {
+      mediapipeProcessor.pose.onResults((results: any) => {
+        if (stage === 'recording' && results.poseLandmarks) {
+          // Draw skeleton
+          const mp = (window as any);
+          if (mp.drawConnectors && mp.drawLandmarks) {
+            mp.drawConnectors(ctx, results.poseLandmarks, mp.POSE_CONNECTIONS, {
+              color: '#00FFFF',
+              lineWidth: 2
+            });
+            mp.drawLandmarks(ctx, results.poseLandmarks, {
+              color: '#FFFFFF',
+              fillColor: '#00FFFF',
+              radius: 3
+            });
+          }
+
+          // Process rep counting
+          const repData = detector.processFrame(results.poseLandmarks, recordingTime);
+          if (repData) {
+            setCurrentReps(repData.count);
+            setCurrentMetrics(repData);
+            
+            // Store rep data
+            if (repData.count > allRepsRef.current.length) {
+              allRepsRef.current.push(repData);
+            }
+
+            // Provide form feedback
+            if (repData.correct === false) {
+              setFormFeedback('⚠️ Check your form!');
+            } else if (repData.correct === true) {
+              setFormFeedback('✅ Good form!');
             }
           }
+
+          // Draw metrics on canvas
+          ctx.font = 'bold 32px Arial';
+          ctx.fillStyle = '#00FF00';
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 3;
           
-          // Store all reps data
-          setAllReps(reps);
-          
-          // Update metrics
-          setCurrentReps(reps.length);
-          setCurrentMetrics(stats);
-        },
-        () => {
-          // On complete callback
-          console.log('Live processing complete');
+          // Rep count
+          const repText = `${activityName.includes('Jump') ? 'Jumps' : 'Reps'}: ${currentReps}`;
+          ctx.strokeText(repText, 20, 50);
+          ctx.fillText(repText, 20, 50);
+
+          // Time
+          const timeText = `Time: ${recordingTime}s`;
+          ctx.strokeText(timeText, 20, 90);
+          ctx.fillText(timeText, 20, 90);
+
+          // Form feedback
+          if (formFeedback) {
+            ctx.font = 'bold 24px Arial';
+            ctx.fillStyle = formFeedback.includes('✅') ? '#00FF00' : '#FFFF00';
+            ctx.strokeText(formFeedback, 20, 130);
+            ctx.fillText(formFeedback, 20, 130);
+          }
         }
-      );
-    } catch (error) {
-      console.error('Recording error:', error);
-      toast.error('Failed to start recording');
-      setIsRecording(false);
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.stop();
-      }
+      });
     }
+
+    renderRecording();
+    toast.success('Recording started! Start your workout');
   };
 
-  const stopRecording = async () => {
-    setIsRecording(false);
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
     
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current);
     }
 
-    // Stop MediaPipe processing
-    if ((window as any).stopLiveProcessing) {
-      (window as any).stopLiveProcessing();
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
     }
 
-    // Stop MediaRecorder
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-      
-      // Wait for final data
-      await new Promise<void>((resolve) => {
-        if (mediaRecorderRef.current) {
-          mediaRecorderRef.current.onstop = () => {
-            resolve();
-          };
-        }
-        setTimeout(() => resolve(), 1000);
-      });
-    }
+    toast.success('Recording stopped! Review your workout');
+  };
 
-    toast.success('Processing recording...');
+  const processRecording = () => {
+    if (!recordedBlob) return;
+
+    // Create results object
+    const correctReps = allRepsRef.current.filter(r => r.correct !== false).length;
+    const totalReps = allRepsRef.current.length;
     
-    // Create video blob from recorded chunks
-    const videoBlob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-    console.log('Created recording blob:', videoBlob.size, 'bytes');
-    
-    if (videoBlob.size === 0) {
-      toast.error('Recording failed - no data captured');
-      return;
-    }
-
-    // Create video URL
-    const videoUrl = URL.createObjectURL(videoBlob);
-    
-    // Calculate stats from live recording
-    const correctReps = allReps.filter(r => r.correct === true || r.correct === 'True').length;
-    const incorrectReps = allReps.length - correctReps;
-    const posture: 'Good' | 'Bad' = correctReps >= allReps.length * 0.7 ? 'Good' : 'Bad';
-
-    const formatDuration = (seconds: number): string => {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    // Build complete results object (same format as VideoProcessor)
     const results = {
-      type: posture === 'Good' ? 'good' : 'bad',
-      posture,
-      setsCompleted: allReps.length,
-      badSets: incorrectReps,
-      duration: formatDuration(recordingTime),
-      videoUrl,
+      type: correctReps >= totalReps * 0.7 ? 'good' : 'bad',
+      posture: correctReps >= totalReps * 0.7 ? 'Good' : 'Bad',
+      setsCompleted: totalReps,
+      badSets: totalReps - correctReps,
+      duration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, '0')}`,
+      videoBlob: recordedBlob,
       stats: {
-        totalReps: allReps.length,
+        totalReps,
         correctReps,
-        incorrectReps,
-        csvData: allReps,
-        totalTime: recordingTime
+        incorrectReps: totalReps - correctReps,
+        csvData: allRepsRef.current
       }
     };
 
-    console.log('Live recording results:', results);
     onComplete(results);
+  };
+
+  const retryRecording = () => {
+    setStage('preview');
+    setRecordedBlob(null);
+    setCurrentReps(0);
+    setRecordingTime(0);
+    recordedChunksRef.current = [];
+    allRepsRef.current = [];
+    startPreview();
+  };
+
+  const cleanup = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+    }
+    if (tipIntervalRef.current) {
+      clearInterval(tipIntervalRef.current);
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    mediapipeProcessor.cleanup();
   };
 
   const formatTime = (seconds: number) => {
@@ -233,134 +404,202 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-lg font-semibold">
-                {isPreviewing ? 'Camera Preview' : 'Recording'} - {activityName}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {isPreviewing ? 'Check your position' : 'Live AI Analysis'}
-              </p>
+              <h1 className="text-lg font-semibold">Live Workout</h1>
+              <p className="text-sm text-muted-foreground">{activityName}</p>
             </div>
+            {stage === 'recording' && (
+              <Badge variant="destructive" className="animate-pulse">
+                <div className="w-2 h-2 bg-white rounded-full mr-2"></div>
+                REC {formatTime(recordingTime)}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
 
       <div className="px-4 pb-20 max-w-4xl mx-auto pt-6 space-y-6">
-        {/* Camera/Canvas Display */}
-        <Card className="card-elevated">
-          <CardContent className="p-4">
-            <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
-              {/* Video preview (hidden during recording) */}
+        {/* Camera Preview/Recording */}
+        <Card className="card-elevated overflow-hidden">
+          <CardContent className="p-0">
+            <div className="relative aspect-video bg-black">
+              {/* Hidden video element */}
               <video
                 ref={videoRef}
-                className={`w-full h-full object-contain ${isPreviewing ? '' : 'hidden'}`}
+                className="hidden"
                 playsInline
                 muted
               />
               
-              {/* Canvas for live analysis */}
-              <canvas
-                ref={canvasRef}
-                className={`w-full h-full object-contain ${isPreviewing ? 'hidden' : ''}`}
-                width={1280}
-                height={720}
-              />
-
-              {/* Recording indicator */}
-              {isRecording && (
-                <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                  <span>REC {formatTime(recordingTime)}</span>
-                </div>
+              {/* Preview canvas (with MediaPipe skeleton) */}
+              {stage === 'preview' && (
+                <canvas
+                  ref={previewCanvasRef}
+                  className="w-full h-full object-contain"
+                />
+              )}
+              
+              {/* Recording canvas (with MediaPipe skeleton + metrics) */}
+              {stage === 'recording' && (
+                <canvas
+                  ref={canvasRef}
+                  className="w-full h-full object-contain"
+                />
+              )}
+              
+              {/* Review video */}
+              {stage === 'review' && recordedBlob && (
+                <video
+                  src={URL.createObjectURL(recordedBlob)}
+                  className="w-full h-full object-contain"
+                  controls
+                  playsInline
+                />
               )}
 
-              {/* Preview indicator */}
-              {isPreviewing && (
-                <div className="absolute top-4 left-4 bg-primary/90 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-2">
-                  <Camera className="w-4 h-4" />
-                  <span>Preview</span>
-                </div>
-              )}
+              {/* Stage indicator */}
+              <div className="absolute top-4 left-4">
+                <Badge className="bg-black/60 text-white border-white/20">
+                  {stage === 'preview' && '👁️ Preview'}
+                  {stage === 'recording' && '🔴 Recording'}
+                  {stage === 'review' && '📹 Review'}
+                </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Live Metrics (only during recording) */}
-        {isRecording && (
-          <Card className="card-elevated">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Live Metrics</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-3 rounded-lg bg-secondary/30">
-                  <div className="text-2xl font-bold mb-1">{currentReps}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {activityName.includes('Jump') ? 'Jumps' : 'Reps'}
+        {/* Tips / Metrics / Review */}
+        {stage === 'preview' && (
+          <Card className="card-elevated bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-2">Form Tips</h3>
+                  <p className="text-lg font-medium text-primary animate-fade-in">
+                    {tips[currentTip]}
                   </p>
-                </div>
-                
-                <div className="text-center p-3 rounded-lg bg-secondary/30">
-                  <div className="text-2xl font-bold mb-1">
-                    {currentMetrics?.correctCount || 0}
+                  <div className="flex gap-1 mt-3">
+                    {tips.map((_, i) => (
+                      <div
+                        key={i}
+                        className={`h-1 flex-1 rounded-full transition-colors ${
+                          i === currentTip ? 'bg-primary' : 'bg-primary/20'
+                        }`}
+                      />
+                    ))}
                   </div>
-                  <p className="text-xs text-muted-foreground">Correct Form</p>
-                </div>
-                
-                {currentMetrics?.minAngle && (
-                  <div className="text-center p-3 rounded-lg bg-secondary/30">
-                    <div className="text-2xl font-bold mb-1">
-                      {Math.round(currentMetrics.minAngle)}°
-                    </div>
-                    <p className="text-xs text-muted-foreground">Current Angle</p>
-                  </div>
-                )}
-                
-                <div className="text-center p-3 rounded-lg bg-secondary/30">
-                  <div className="text-2xl font-bold mb-1">{formatTime(recordingTime)}</div>
-                  <p className="text-xs text-muted-foreground">Duration</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Instructions */}
-        {isPreviewing && (
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="p-4">
-              <p className="text-sm text-center mb-2 font-semibold">
-                📹 Position yourself in frame
-              </p>
-              <p className="text-xs text-center text-muted-foreground">
-                Make sure your full body is visible. When ready, click "Start Recording" to begin your workout with real-time AI analysis.
-              </p>
+        {stage === 'recording' && (
+          <Card className="card-elevated">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-3xl font-bold text-primary">{currentReps}</div>
+                  <p className="text-sm text-muted-foreground">
+                    {activityName.includes('Jump') ? 'Jumps' : 'Reps'}
+                  </p>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold">{formatTime(recordingTime)}</div>
+                  <p className="text-sm text-muted-foreground">Duration</p>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-green-500">
+                    {currentMetrics?.correct !== false ? '✓' : '⚠'}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Form</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Control Buttons */}
-        <div className="flex gap-3">
-          {isPreviewing ? (
+        {stage === 'review' && (
+          <Card className="card-elevated">
+            <CardContent className="p-6">
+              <div className="text-center space-y-4">
+                <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+                <h3 className="text-xl font-bold">Recording Complete!</h3>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold">{currentReps}</div>
+                    <p className="text-sm text-muted-foreground">Total Reps</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{formatTime(recordingTime)}</div>
+                    <p className="text-sm text-muted-foreground">Duration</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Review your workout above, then process to see detailed analysis
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Action Buttons */}
+        <div className="space-y-3">
+          {stage === 'preview' && (
             <Button
               onClick={startRecording}
-              className="flex-1 btn-hero"
+              className="w-full h-14 text-lg"
               size="lg"
             >
               <Video className="w-5 h-5 mr-2" />
               Start Recording
             </Button>
-          ) : (
+          )}
+
+          {stage === 'recording' && (
             <Button
               onClick={stopRecording}
               variant="destructive"
-              className="flex-1"
+              className="w-full h-14 text-lg"
               size="lg"
             >
               <StopCircle className="w-5 h-5 mr-2" />
-              Stop & Finish
+              Stop Recording
             </Button>
           )}
+
+          {stage === 'review' && (
+            <>
+              <Button
+                onClick={processRecording}
+                className="w-full h-14 text-lg"
+                size="lg"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Process & Analyze
+              </Button>
+              <Button
+                onClick={retryRecording}
+                variant="outline"
+                className="w-full"
+              >
+                Record Again
+              </Button>
+            </>
+          )}
         </div>
+
+        {/* Info */}
+        <Card className="bg-muted/50">
+          <CardContent className="p-4 text-sm text-center text-muted-foreground">
+            {stage === 'preview' && '💡 Position yourself so your full body is visible in frame'}
+            {stage === 'recording' && '🎯 AI is tracking your form in real-time'}
+            {stage === 'review' && '📊 Processing will generate detailed analysis and metrics'}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
