@@ -73,7 +73,7 @@ export const WORKOUT_MAPPING: { [key: string]: { video: string; live: string } }
 };
 
 class MediaPipeProcessor {
-  private pose: Pose | null = null;
+  public pose: any = null;
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private mediaRecorder: MediaRecorder | null = null;

@@ -139,11 +139,14 @@ export class PullupDetector {
   private inDip = false;
   private dipStartTime = 0;
   private initialHeadY: number | null = null;
+  private minHeadY: number = 999; // Track minimum head Y during pull
+  private maxElbowAngle: number = 0; // Track max elbow angle at bottom
   private reps: RepData[] = [];
   private angleBuffer = new SmoothingBuffer(3);
   
-  private readonly BOTTOM_ANGLE = 160;
-  private readonly MIN_DIP = 0.1;
+  private readonly BOTTOM_ANGLE = 160; // Minimum angle at bottom for full extension
+  private readonly MIN_DIP = 0.1; // Minimum time for pull-up
+  private readonly MIN_HEAD_LIFT = 0.05; // Minimum head lift (5% of frame height) - chin over bar
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const nose = landmarks[0];
@@ -163,28 +166,51 @@ export class PullupDetector {
     const rightAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
     const elbowAngle = this.angleBuffer.add((leftAngle + rightAngle) / 2);
 
-    if (this.state === 'waiting' && headY < this.initialHeadY) {
+    if (this.state === 'waiting' && headY < this.initialHeadY - 0.01) {
+      // Starting pull-up
       this.state = 'up';
       this.inDip = true;
       this.dipStartTime = time;
+      this.minHeadY = headY;
+      this.maxElbowAngle = elbowAngle;
     } else if (this.state === 'up') {
+      // Track minimum head position during pull
+      if (headY < this.minHeadY) {
+        this.minHeadY = headY;
+      }
+      
+      // Track maximum elbow angle (should be > 160° at bottom)
+      if (elbowAngle > this.maxElbowAngle) {
+        this.maxElbowAngle = elbowAngle;
+      }
+      
+      // Check if returning to bottom (elbows extended)
       if (elbowAngle > this.BOTTOM_ANGLE) {
-        if (headY >= this.initialHeadY && this.inDip) {
+        if (headY >= this.initialHeadY - 0.01 && this.inDip) {
           const dipDuration = time - this.dipStartTime;
-          if (dipDuration >= this.MIN_DIP) {
-            this.reps.push({
-              count: this.reps.length + 1,
-              upTime: this.dipStartTime,
-              downTime: time,
-              dipDuration: dipDuration,
-              minElbowAngle: elbowAngle,
-              correct: true,
-              timestamp: time,
-              state: 'completed'
-            });
-          }
+          const headLift = this.initialHeadY - this.minHeadY;
+          
+          // Validate rep: chin must go over bar AND full elbow extension AND minimum duration
+          const chinOverBar = headLift >= this.MIN_HEAD_LIFT;
+          const fullExtension = this.maxElbowAngle >= this.BOTTOM_ANGLE;
+          const goodDuration = dipDuration >= this.MIN_DIP;
+          const isCorrect = chinOverBar && fullExtension && goodDuration;
+          
+          this.reps.push({
+            count: this.reps.length + 1,
+            upTime: this.dipStartTime,
+            downTime: time,
+            dipDuration: dipDuration,
+            minElbowAngle: this.maxElbowAngle,
+            correct: isCorrect,
+            timestamp: time,
+            state: 'completed'
+          });
+          
           this.inDip = false;
           this.state = 'waiting';
+          this.minHeadY = 999;
+          this.maxElbowAngle = 0;
         }
       }
     }
@@ -193,10 +219,13 @@ export class PullupDetector {
   }
 
   getState() { return this.state; }
+  getCurrentAngle() { return this.maxElbowAngle; }
   getDipTime(currentTime: number) { 
     return this.inDip ? currentTime - this.dipStartTime : 0; 
   }
   getReps() { return this.reps; }
+  getCorrectCount() { return this.reps.filter(r => r.correct).length; }
+  getBadCount() { return this.reps.filter(r => !r.correct).length; }
 }
 
 // Situp Detector (matches situp_video.py)
@@ -204,10 +233,14 @@ export class SitupDetector {
   private state = 'up';
   private lastExtremeAngle: number | null = null;
   private dipStartTime = 0;
+  private minAngle: number = 180;
+  private maxAngle: number = 0;
   private reps: RepData[] = [];
   private angleBuffer = new SmoothingBuffer(5);
   
-  private readonly MIN_DIP_CHANGE = 15;
+  private readonly MIN_DIP_CHANGE = 15; // Minimum angle change to count as movement
+  private readonly MIN_DURATION = 0.3; // Minimum time for a sit-up
+  private readonly GOOD_RANGE_MIN = 30; // Good sit-up should reach at least 30° range
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftShoulder = landmarks[11];
@@ -223,25 +256,47 @@ export class SitupDetector {
 
     if (this.lastExtremeAngle === null) {
       this.lastExtremeAngle = elbowAngle;
+      this.minAngle = elbowAngle;
+      this.maxAngle = elbowAngle;
+    }
+
+    // Track min and max angles during movement
+    if (elbowAngle < this.minAngle) {
+      this.minAngle = elbowAngle;
+    }
+    if (elbowAngle > this.maxAngle) {
+      this.maxAngle = elbowAngle;
     }
 
     if (this.state === 'up' && this.lastExtremeAngle - elbowAngle >= this.MIN_DIP_CHANGE) {
       this.state = 'down';
       this.dipStartTime = time;
       this.lastExtremeAngle = elbowAngle;
+      this.minAngle = elbowAngle;
+      this.maxAngle = elbowAngle;
     } else if (this.state === 'down' && elbowAngle - this.lastExtremeAngle >= this.MIN_DIP_CHANGE) {
       this.state = 'up';
+      const dipDuration = time - this.dipStartTime;
+      const angleRange = this.maxAngle - this.minAngle;
+      
+      // Validate: good duration and sufficient range of motion
+      const goodDuration = dipDuration >= this.MIN_DURATION;
+      const goodRange = angleRange >= this.GOOD_RANGE_MIN;
+      const isCorrect = goodDuration && goodRange;
+      
       this.reps.push({
         count: this.reps.length + 1,
         downTime: this.dipStartTime,
         upTime: time,
-        dipDuration: time - this.dipStartTime,
-        minElbowAngle: this.lastExtremeAngle,
-        correct: true,
+        dipDuration: dipDuration,
+        minElbowAngle: this.minAngle,
+        correct: isCorrect,
         timestamp: time,
         state: 'completed'
       });
       this.lastExtremeAngle = elbowAngle;
+      this.minAngle = elbowAngle;
+      this.maxAngle = elbowAngle;
     }
 
     return this.reps;
@@ -253,6 +308,8 @@ export class SitupDetector {
     return this.state === 'down' ? currentTime - this.dipStartTime : 0; 
   }
   getReps() { return this.reps; }
+  getCorrectCount() { return this.reps.filter(r => r.correct).length; }
+  getBadCount() { return this.reps.filter(r => !r.correct).length; }
 }
 
 // Vertical Jump Detector (matches verticaljump_video.py)
@@ -266,6 +323,8 @@ export class VerticalJumpDetector {
   private maxJumpHeight = 0;
   
   private readonly PIXEL_TO_M = 0.0026; // Calibration factor
+  private readonly MIN_JUMP_HEIGHT = 0.05; // Minimum 5cm jump to count as valid
+  private readonly MIN_AIR_TIME = 0.15; // Minimum 0.15s air time
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftHip = landmarks[23];
@@ -295,6 +354,11 @@ export class VerticalJumpDetector {
           this.maxJumpHeight = jumpHeightM;
         }
         
+        // Validate: minimum height and air time
+        const goodHeight = jumpHeightM >= this.MIN_JUMP_HEIGHT;
+        const goodAirTime = airTime >= this.MIN_AIR_TIME;
+        const isCorrect = goodHeight && goodAirTime;
+        
         this.reps.push({
           count: this.reps.length + 1,
           timestamp: time,
@@ -302,7 +366,7 @@ export class VerticalJumpDetector {
           upTime: time,
           airTime: airTime,
           jumpHeight: jumpHeightM,
-          correct: true,
+          correct: isCorrect,
           state: 'completed'
         });
         
@@ -320,6 +384,8 @@ export class VerticalJumpDetector {
   }
   getMaxJumpHeight() { return this.maxJumpHeight; }
   getReps() { return this.reps; }
+  getCorrectCount() { return this.reps.filter(r => r.correct).length; }
+  getBadCount() { return this.reps.filter(r => !r.correct).length; }
 }
 
 // Shuttle Run Detector (matches shuttlerun_video.py)
@@ -394,6 +460,8 @@ export class ShuttleRunDetector {
     return Math.abs(this.lastX - this.startX) * this.PIXEL_TO_M; 
   }
   getReps() { return this.reps; }
+  getCorrectCount() { return this.reps.filter(r => r.correct).length; }
+  getBadCount() { return this.reps.filter(r => !r.correct).length; }
 }
 
 // Vertical Broad Jump Detector (matches verticalbroadjump_video.py)
@@ -406,6 +474,8 @@ export class VerticalBroadJumpDetector {
   private ankleYBuffer = new SmoothingBuffer(5);
   
   private readonly Y_THRESHOLD = 0.015; // 1.5% of frame height
+  private readonly MIN_DISTANCE = 0.1; // Minimum 10cm horizontal distance
+  private readonly MIN_AIR_TIME = 0.2; // Minimum 0.2s air time
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftAnkle = landmarks[27];
@@ -432,6 +502,11 @@ export class VerticalBroadJumpDetector {
         const airTime = time - this.airStartTime;
         const jumpDistance = Math.abs(ankleX - this.takeoffX);
         
+        // Validate: minimum distance and air time
+        const goodDistance = jumpDistance >= this.MIN_DISTANCE;
+        const goodAirTime = airTime >= this.MIN_AIR_TIME;
+        const isCorrect = goodDistance && goodAirTime;
+        
         this.reps.push({
           count: this.reps.length + 1,
           timestamp: time,
@@ -439,7 +514,7 @@ export class VerticalBroadJumpDetector {
           upTime: time,
           airTime: airTime,
           distance: jumpDistance,
-          correct: true,
+          correct: isCorrect,
           state: 'completed'
         });
         
@@ -453,6 +528,8 @@ export class VerticalBroadJumpDetector {
 
   getState() { return this.state; }
   getReps() { return this.reps; }
+  getCorrectCount() { return this.reps.filter(r => r.correct).length; }
+  getBadCount() { return this.reps.filter(r => !r.correct).length; }
 }
 
 // Sit and Reach Detector (matches sitreach_video.py)
@@ -513,6 +590,8 @@ export class SitAndReachDetector {
     return this.maxReach * this.PIXEL_TO_M; 
   }
   getReps() { return this.reps; }
+  getCorrectCount() { return this.reps.filter(r => r.correct).length; }
+  getBadCount() { return this.reps.filter(r => !r.correct).length; }
 }
 
 // Factory function to get detector for activity

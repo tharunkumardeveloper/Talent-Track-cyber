@@ -52,11 +52,13 @@ export class PushupVideoDetector {
   private current_dip_min_angle = 180;
   private reps: RepData[] = [];
   private angle_history: number[] = [];
+  private last_rep_time: number = 0;
   
   private readonly DOWN_ANGLE = 75;
   private readonly UP_ANGLE = 110;
-  private readonly MIN_DIP_DURATION = 0.2;
-  private readonly SMOOTH_N = 3;
+  private readonly MIN_DIP_DURATION = 0.3;  // Increased from 0.2 to prevent false positives
+  private readonly MIN_REP_INTERVAL = 0.5;  // Minimum time between reps to prevent false positives
+  private readonly SMOOTH_N = 5;  // Increased smoothing to reduce noise
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftShoulder = landmarks[11];
@@ -87,18 +89,27 @@ export class PushupVideoDetector {
       this.state = 'up';
       if (this.in_dip && this.dip_start_time !== null) {
         const dip_duration = time - this.dip_start_time;
+        const time_since_last_rep = time - this.last_rep_time;
+        
+        // Validate rep: proper angle, duration, and not too fast
+        const is_valid_rep = dip_duration >= this.MIN_DIP_DURATION && 
+                            time_since_last_rep >= this.MIN_REP_INTERVAL;
         const is_correct = this.current_dip_min_angle <= this.DOWN_ANGLE && dip_duration >= this.MIN_DIP_DURATION;
         
-        const rep = {
-          count: this.reps.length + 1,
-          down_time: Math.round(this.dip_start_time * 1000) / 1000,
-          up_time: Math.round(time * 1000) / 1000,
-          dip_duration_sec: Math.round(dip_duration * 1000) / 1000,
-          min_elbow_angle: Math.round(this.current_dip_min_angle * 100) / 100,
-          correct: is_correct
-        };
-        
-        this.reps.push(rep);
+        // Only count if valid
+        if (is_valid_rep) {
+          const rep = {
+            count: this.reps.length + 1,
+            down_time: Math.round(this.dip_start_time * 1000) / 1000,
+            up_time: Math.round(time * 1000) / 1000,
+            dip_duration_sec: Math.round(dip_duration * 1000) / 1000,
+            min_elbow_angle: Math.round(this.current_dip_min_angle * 100) / 100,
+            correct: is_correct
+          };
+          
+          this.reps.push(rep);
+          this.last_rep_time = time;
+        }
         
         this.in_dip = false;
         this.dip_start_time = null;
@@ -204,6 +215,8 @@ export class PullupVideoDetector {
     return (this.in_dip && this.dip_start_time !== null) ? currentTime - this.dip_start_time : 0; 
   }
   getReps() { return this.reps; }
+  getCorrectCount() { return this.reps.filter(r => r.correct === true).length; }
+  getBadCount() { return this.reps.filter(r => r.correct === false).length; }
 }
 
 // Situp Video Detector - EXACT match to situp_video.py
@@ -269,6 +282,8 @@ export class SitupVideoDetector {
     return (this.state === 'down' && this.dip_start_time !== null) ? currentTime - this.dip_start_time : 0; 
   }
   getReps() { return this.reps; }
+  getCorrectCount() { return this.reps.filter(r => r.correct === true).length; }
+  getBadCount() { return this.reps.filter(r => r.correct === false).length; }
 }
 
 // Vertical Jump Video Detector - EXACT match to verticaljump_video.py
@@ -339,6 +354,10 @@ export class VerticalJumpVideoDetector {
   }
   getMaxJumpHeight() { return this.max_jump_height_px * this.PIXEL_TO_M; }
   getReps() { return this.reps; }
+  getCurrentAngle() { return undefined; }
+  getDipTime() { return 0; }
+  getCorrectCount() { return this.reps.length; }
+  getBadCount() { return 0; }
 }
 
 // Shuttle Run Video Detector - EXACT match to shuttlerun_video.py
@@ -420,6 +439,10 @@ export class ShuttleRunVideoDetector {
     return Math.abs(this.last_x - this.start_x) * this.PIXEL_TO_M; 
   }
   getRunCount() { return this.run_count; }
+  getCurrentAngle() { return undefined; }
+  getDipTime() { return 0; }
+  getCorrectCount() { return this.run_count; }
+  getBadCount() { return 0; }
   getReps() { 
     return Array.from({ length: this.run_count }, (_, i) => ({
       count: i + 1,
@@ -484,6 +507,11 @@ export class VerticalBroadJumpVideoDetector {
 
   getState() { return this.state; }
   getReps() { return this.reps; }
+  getCurrentAngle() { return undefined; }
+  getDipTime() { return 0; }
+  getAirTime() { return 0; }
+  getCorrectCount() { return this.reps.length; }
+  getBadCount() { return 0; }
 }
 
 // Sit and Reach Video Detector - EXACT match to sitreach_video.py
@@ -537,6 +565,11 @@ export class SitAndReachVideoDetector {
     return this.max_reach_px * this.PIXEL_TO_M; 
   }
   getReachData() { return this.reach_data; }
+  getState() { return 'reaching'; }
+  getCurrentAngle() { return undefined; }
+  getDipTime() { return 0; }
+  getCorrectCount() { return this.reach_data.length; }
+  getBadCount() { return 0; }
   getReps() { 
     return this.reach_data.length > 0 ? [{
       count: 1,

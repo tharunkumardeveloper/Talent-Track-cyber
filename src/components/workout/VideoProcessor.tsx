@@ -518,8 +518,8 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
     );
   }
 
-  // Results Screen (for good/bad results)
-  if (result && (result.type === 'good' || result.type === 'bad')) {
+  // Results Screen (for good/bad/poor results)
+  if (result && (result.type === 'good' || result.type === 'bad' || result.type === 'poor')) {
     return (
       <div className="min-h-screen bg-background">
         {/* Header */}

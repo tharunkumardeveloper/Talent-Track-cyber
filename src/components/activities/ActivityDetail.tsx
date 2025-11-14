@@ -1,12 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  ArrowLeft, 
   X,
   Target,
-  Trophy,
   Clock,
   Users
 } from 'lucide-react';
@@ -397,18 +394,33 @@ const ActivityDetail = ({ activity, onBack, onStartWorkout }: ActivityDetailProp
         )}
       </div>
 
-      {/* Start Workout Button - Right below cover image */}
+      {/* Workout Mode Selection - Right below cover image */}
       <div className="px-4 py-4 max-w-md mx-auto bg-background border-b">
-        <Button 
-          onClick={() => onStartWorkout('upload')} // Default to upload mode, user can choose inside
-          className="w-full h-16 text-lg font-semibold"
-          size="lg"
-        >
-          <Trophy className="w-6 h-6 mr-2" />
-          Start Workout
-        </Button>
-        <p className="text-xs text-center text-muted-foreground mt-2">
-          Choose between live camera or video upload in the next screen
+        <div className="grid grid-cols-2 gap-3">
+          <Button 
+            onClick={() => onStartWorkout('upload')}
+            className="h-16 text-base font-semibold flex flex-col items-center justify-center"
+            variant="outline"
+            size="lg"
+          >
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            Upload Video
+          </Button>
+          <Button 
+            onClick={() => onStartWorkout('live')}
+            className="h-16 text-base font-semibold flex flex-col items-center justify-center"
+            size="lg"
+          >
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Live Workout
+          </Button>
+        </div>
+        <p className="text-xs text-center text-muted-foreground mt-3">
+          Upload a recorded video or start a live workout session
         </p>
       </div>
 
