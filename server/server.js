@@ -76,7 +76,8 @@ const activityScripts = {
   'Vertical Jump': 'verticaljump_video.py',
   'Shuttle Run': 'shuttlerun_video.py',
   'Sit Reach': 'sitreach_video.py',
-  'Vertical Broad Jump': 'verticalbroadjump_video.py'
+  'Vertical Broad Jump': 'verticalbroadjump_video.py',
+  'Standing Broad Jump': 'verticalbroadjump_video.py'
 };
 
 // Live recording scripts

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -25,16 +25,32 @@ const WorkoutUploadScreen = ({ activityName, onBack, onVideoSelected, onLiveReco
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [isSelectingFile, setIsSelectingFile] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Auto-trigger file selection on mount (skip the selection screen)
+  useEffect(() => {
+    // Trigger file input immediately when component mounts
+    const timer = setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith('video/')) {
       onVideoSelected(file);
+    } else {
+      // User cancelled or selected invalid file, go back
+      setIsSelectingFile(false);
+      if (!file) {
+        onBack();
+      }
     }
   };
 
@@ -262,6 +278,30 @@ const WorkoutUploadScreen = ({ activityName, onBack, onVideoSelected, onLiveReco
     );
   }
 
+  // Show loading screen while file picker is open
+  if (isSelectingFile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-6xl animate-pulse">📁</div>
+          <h2 className="text-xl font-semibold">Select Your Video</h2>
+          <p className="text-muted-foreground">Choose a video file to analyze</p>
+          <Button variant="outline" onClick={onBack} className="mt-4">
+            Cancel
+          </Button>
+        </div>
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="video/*"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+      </div>
+    );
+  }
+
   // Selection Mode
   return (
     <div className="min-h-screen bg-background">
@@ -345,14 +385,6 @@ const WorkoutUploadScreen = ({ activityName, onBack, onVideoSelected, onLiveReco
           </CardContent>
         </Card>
 
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="video/mp4,video/*"
-          onChange={handleFileUpload}
-          className="hidden"
-        />
       </div>
     </div>
   );

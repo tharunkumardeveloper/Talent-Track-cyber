@@ -105,6 +105,30 @@ const CSVDataDisplay = ({ csvData, activityName }: CSVDataDisplayProps) => {
     </div>
   );
 
+  const renderSitReachData = () => {
+    // For sit and reach, we only have one measurement with max reach
+    const maxReach = csvData[0]?.reach_m || 0;
+    const timeOfMax = csvData[0]?.time_of_max || 0;
+    
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-success/10 border border-success/20 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-success">{maxReach.toFixed(2)}m</div>
+            <div className="text-xs text-muted-foreground mt-1">Maximum Reach</div>
+          </div>
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-primary">{timeOfMax.toFixed(2)}s</div>
+            <div className="text-xs text-muted-foreground mt-1">Time of Max Reach</div>
+          </div>
+        </div>
+        <div className="text-sm text-muted-foreground text-center">
+          <p>✅ Maximum forward reach distance measured</p>
+        </div>
+      </div>
+    );
+  };
+
   const renderGenericData = () => (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -139,15 +163,20 @@ const CSVDataDisplay = ({ csvData, activityName }: CSVDataDisplayProps) => {
   );
 
   const renderData = () => {
+    // Check if activity name includes push-up variations
+    if (activityName.toLowerCase().includes('push')) {
+      return renderPushupData();
+    }
+    
     switch (activityName) {
-      case 'Push-ups':
-        return renderPushupData();
       case 'Pull-ups':
         return renderPullupData();
       case 'Vertical Jump':
         return renderJumpData();
       case 'Sit-ups':
         return renderPushupData(); // Similar format
+      case 'Sit Reach':
+        return renderSitReachData();
       default:
         return renderGenericData();
     }
@@ -160,9 +189,11 @@ const CSVDataDisplay = ({ csvData, activityName }: CSVDataDisplayProps) => {
       </CardHeader>
       <CardContent>
         {renderData()}
-        <p className="text-xs text-muted-foreground mt-4 text-center">
-          📊 {csvData.length} {csvData.length === 1 ? 'rep' : 'reps'} recorded
-        </p>
+        {activityName !== 'Sit Reach' && (
+          <p className="text-xs text-muted-foreground mt-4 text-center">
+            📊 {csvData.length} {csvData.length === 1 ? 'rep' : 'reps'} recorded
+          </p>
+        )}
       </CardContent>
     </Card>
   );

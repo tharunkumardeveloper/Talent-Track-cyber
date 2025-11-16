@@ -371,6 +371,17 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
     }
   };
 
+  const handleBackDuringProcessing = () => {
+    // Cancel the processing
+    mediapipeProcessor.cancelVideoProcessing();
+    
+    // Show cancellation message
+    toast.info('Processing cancelled');
+    
+    // Go back
+    onBack();
+  };
+
   // Processing Screen with Live Preview
   if (isProcessing) {
     return (
@@ -379,7 +390,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
         <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-subtle border-b safe-top">
           <div className="px-4 py-4">
             <div className="flex items-center space-x-3 max-w-4xl mx-auto">
-              <Button variant="ghost" size="sm" onClick={onBack} className="tap-target">
+              <Button variant="ghost" size="sm" onClick={handleBackDuringProcessing} className="tap-target">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div className="flex-1">
@@ -699,41 +710,59 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
             <CardContent className="space-y-4">
               {/* Dynamic stats grid based on activity type */}
               <div className="grid grid-cols-2 gap-4">
-                {result.posture && (
-                  <div className="text-center p-3 rounded-lg bg-secondary/30">
-                    <div className="text-2xl font-bold mb-1">{result.posture}</div>
-                    <p className="text-xs text-muted-foreground">Posture</p>
-                  </div>
-                )}
+                {/* Sit and Reach - Show max reach prominently */}
+                {activityName === 'Sit Reach' && result.stats?.maxReach !== undefined ? (
+                  <>
+                    <div className="col-span-2 text-center p-4 rounded-lg bg-success/10 border border-success/20">
+                      <div className="text-4xl font-bold mb-1 text-success">{result.stats.maxReach.toFixed(2)}m</div>
+                      <p className="text-sm text-muted-foreground">Maximum Reach Distance</p>
+                    </div>
+                    {result.duration && (
+                      <div className="col-span-2 text-center p-3 rounded-lg bg-secondary/30">
+                        <div className="text-2xl font-bold mb-1">{result.duration}</div>
+                        <p className="text-xs text-muted-foreground">Duration</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {result.posture && (
+                      <div className="text-center p-3 rounded-lg bg-secondary/30">
+                        <div className="text-2xl font-bold mb-1">{result.posture}</div>
+                        <p className="text-xs text-muted-foreground">Posture</p>
+                      </div>
+                    )}
 
-                {result.setsCompleted !== undefined && (
-                  <div className="text-center p-3 rounded-lg bg-secondary/30">
-                    <div className="text-2xl font-bold mb-1">{result.setsCompleted}</div>
-                    <p className="text-xs text-muted-foreground">
-                      {activityName.includes('Jump') ? 'Jumps' : 'Reps'}
-                    </p>
-                  </div>
-                )}
+                    {result.setsCompleted !== undefined && (
+                      <div className="text-center p-3 rounded-lg bg-secondary/30">
+                        <div className="text-2xl font-bold mb-1">{result.setsCompleted}</div>
+                        <p className="text-xs text-muted-foreground">
+                          {activityName.includes('Jump') ? 'Jumps' : 'Reps'}
+                        </p>
+                      </div>
+                    )}
 
-                {result.badSets !== undefined && !activityName.includes('Jump') && (
-                  <div className="text-center p-3 rounded-lg bg-secondary/30">
-                    <div className="text-2xl font-bold mb-1 text-red-500">{result.badSets}</div>
-                    <p className="text-xs text-muted-foreground">Bad Form</p>
-                  </div>
-                )}
-                
-                {result.stats?.correctReps !== undefined && !activityName.includes('Jump') && (
-                  <div className="text-center p-3 rounded-lg bg-secondary/30">
-                    <div className="text-2xl font-bold mb-1 text-green-500">{result.stats.correctReps}</div>
-                    <p className="text-xs text-muted-foreground">Correct Form</p>
-                  </div>
-                )}
+                    {result.badSets !== undefined && !activityName.includes('Jump') && (
+                      <div className="text-center p-3 rounded-lg bg-secondary/30">
+                        <div className="text-2xl font-bold mb-1 text-red-500">{result.badSets}</div>
+                        <p className="text-xs text-muted-foreground">Bad Form</p>
+                      </div>
+                    )}
+                    
+                    {result.stats?.correctReps !== undefined && !activityName.includes('Jump') && (
+                      <div className="text-center p-3 rounded-lg bg-secondary/30">
+                        <div className="text-2xl font-bold mb-1 text-green-500">{result.stats.correctReps}</div>
+                        <p className="text-xs text-muted-foreground">Correct Form</p>
+                      </div>
+                    )}
 
-                {result.duration && (
-                  <div className="text-center p-3 rounded-lg bg-secondary/30">
-                    <div className="text-2xl font-bold mb-1">{result.duration}</div>
-                    <p className="text-xs text-muted-foreground">Duration</p>
-                  </div>
+                    {result.duration && (
+                      <div className="text-center p-3 rounded-lg bg-secondary/30">
+                        <div className="text-2xl font-bold mb-1">{result.duration}</div>
+                        <p className="text-xs text-muted-foreground">Duration</p>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Activity-specific stats */}
@@ -793,26 +822,35 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                     <span>Performance Summary</span>
                   </h4>
                   <div className="text-sm space-y-1">
-                    {result.stats.correctReps !== undefined && result.stats.totalReps !== undefined && (
-                      <p>✅ Correct reps: {result.stats.correctReps}/{result.stats.totalReps} ({Math.round((result.stats.correctReps / result.stats.totalReps) * 100)}%)</p>
-                    )}
-                    {result.stats.maxJumpHeight && (
-                      <p>🏆 Best jump: {result.stats.maxJumpHeight.toFixed(2)}m</p>
-                    )}
-                    {result.stats.avgJumpHeight && (
-                      <p>📊 Average jump: {result.stats.avgJumpHeight.toFixed(2)}m</p>
-                    )}
-                    {result.stats.avgSplitTime && (
-                      <p>⏱️ Average split time: {result.stats.avgSplitTime.toFixed(2)}s</p>
-                    )}
-                    {result.stats.minElbowAngle && result.stats.minElbowAngle < 90 && (
-                      <p>💪 Good depth achieved (min angle: {Math.round(result.stats.minElbowAngle)}°)</p>
-                    )}
-                    {result.stats.avgRepDuration && (
-                      <p>⏲️ Average rep time: {result.stats.avgRepDuration.toFixed(1)}s</p>
-                    )}
-                    {result.stats.distance && (
-                      <p>📏 Distance covered: {result.stats.distance.toFixed(2)}m</p>
+                    {activityName === 'Sit Reach' && result.stats.maxReach ? (
+                      <>
+                        <p>✅ Maximum forward reach: {result.stats.maxReach.toFixed(2)}m</p>
+                        <p>📏 Flexibility measurement completed</p>
+                      </>
+                    ) : (
+                      <>
+                        {result.stats.correctReps !== undefined && result.stats.totalReps !== undefined && (
+                          <p>✅ Correct reps: {result.stats.correctReps}/{result.stats.totalReps} ({Math.round((result.stats.correctReps / result.stats.totalReps) * 100)}%)</p>
+                        )}
+                        {result.stats.maxJumpHeight && (
+                          <p>🏆 Best jump: {result.stats.maxJumpHeight.toFixed(2)}m</p>
+                        )}
+                        {result.stats.avgJumpHeight && (
+                          <p>📊 Average jump: {result.stats.avgJumpHeight.toFixed(2)}m</p>
+                        )}
+                        {result.stats.avgSplitTime && (
+                          <p>⏱️ Average split time: {result.stats.avgSplitTime.toFixed(2)}s</p>
+                        )}
+                        {result.stats.minElbowAngle && result.stats.minElbowAngle < 90 && (
+                          <p>💪 Good depth achieved (min angle: {Math.round(result.stats.minElbowAngle)}°)</p>
+                        )}
+                        {result.stats.avgRepDuration && (
+                          <p>⏲️ Average rep time: {result.stats.avgRepDuration.toFixed(1)}s</p>
+                        )}
+                        {result.stats.distance && (
+                          <p>📏 Distance covered: {result.stats.distance.toFixed(2)}m</p>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

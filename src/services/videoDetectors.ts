@@ -23,9 +23,12 @@ interface RepData {
   jump_height_px?: number;
   jump_height_m?: number;
   jump_distance_px?: number;
+  jump_distance_m?: number;
   reach_px?: number;
   reach_m?: number;
   time_s?: number;
+  time_of_max?: number;
+  state?: string;
 }
 
 // Calculate angle - EXACT Python implementation
@@ -246,16 +249,19 @@ export class PullupVideoDetector {
   getBadCount() { return this.reps.filter(r => r.correct === false).length; }
 }
 
-// Situp Video Detector - EXACT match to situp_video.py
+// Situp Video Detector - Count rep when entering 'down' state
 export class SitupVideoDetector {
   private state = 'up';
   private last_extreme_angle: number | null = null;
-  private dip_start_time: number | null = null;
+  private up_start_time: number | null = null;
   private reps: RepData[] = [];
   private angle_history: number[] = [];
+  private first_down = true; // Track if this is the first down (don't count it)
+  private up_angle: number = 0; // Track angle at up position
 
   private readonly MIN_DIP_CHANGE = 15;
   private readonly SMOOTH_N = 5;
+  private readonly MIN_DURATION = 0.2; // Minimum 0.2s for a rep (more lenient)
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftShoulder = landmarks[11];
@@ -277,22 +283,41 @@ export class SitupVideoDetector {
 
     if (this.last_extreme_angle === null) {
       this.last_extreme_angle = elbow_angle_sm;
+      this.up_angle = elbow_angle_sm;
     }
 
+    // Transition from UP to DOWN (going down)
     if (this.state === 'up' && this.last_extreme_angle - elbow_angle_sm >= this.MIN_DIP_CHANGE) {
       this.state = 'down';
-      this.dip_start_time = time;
+      this.up_angle = this.last_extreme_angle; // Store the up angle
       this.last_extreme_angle = elbow_angle_sm;
+
+      // Count rep when entering 'down' state (except the very first time)
+      if (!this.first_down) {
+        const angle_change = this.up_angle - elbow_angle_sm;
+        const rep_duration = this.up_start_time !== null ? time - this.up_start_time : 0;
+
+        // More lenient validation: just check angle change
+        const is_correct = angle_change >= this.MIN_DIP_CHANGE && rep_duration >= this.MIN_DURATION;
+
+        this.reps.push({
+          count: this.reps.length + 1,
+          down_time: Math.round(time * 1000) / 1000,
+          up_time: this.up_start_time !== null ? Math.round(this.up_start_time * 1000) / 1000 : 0,
+          angle_change: Math.round(angle_change * 100) / 100,
+          dip_duration_sec: Math.round(rep_duration * 1000) / 1000,
+          correct: is_correct
+        });
+      } else {
+        this.first_down = false;
+      }
+
+      this.up_start_time = null;
     }
+    // Transition from DOWN to UP (going up)
     else if (this.state === 'down' && elbow_angle_sm - this.last_extreme_angle >= this.MIN_DIP_CHANGE) {
       this.state = 'up';
-      this.reps.push({
-        count: this.reps.length + 1,
-        down_time: this.dip_start_time !== null ? Math.round(this.dip_start_time * 1000) / 1000 : 0,
-        up_time: Math.round(time * 1000) / 1000,
-        angle_change: Math.round((elbow_angle_sm - this.last_extreme_angle) * 100) / 100
-      });
-      this.dip_start_time = null;
+      this.up_start_time = time; // Track when we reached up position
       this.last_extreme_angle = elbow_angle_sm;
     }
 
@@ -306,11 +331,12 @@ export class SitupVideoDetector {
       : 0;
   }
   getDipTime(currentTime: number) {
-    return (this.state === 'down' && this.dip_start_time !== null) ? currentTime - this.dip_start_time : 0;
+    // Return time in down position (not used for sit-ups, but kept for compatibility)
+    return 0;
   }
   getReps() { return this.reps; }
-  getCorrectCount() { return this.reps.filter(r => r.correct === true).length; }
-  getBadCount() { return this.reps.filter(r => r.correct === false).length; }
+  getCorrectCount() { return this.reps.filter(r => r.correct === true || r.correct === 'True').length; }
+  getBadCount() { return this.reps.filter(r => r.correct === false || r.correct === 'False').length; }
 }
 
 // Vertical Jump Video Detector - Fixed coordinate system
@@ -423,7 +449,7 @@ export class VerticalJumpVideoDetector {
   getBadCount() { return 0; }
 }
 
-// Shuttle Run Video Detector - EXACT match to shuttlerun_video.py
+// Shuttle Run Video Detector - Fixed to return RepData[]
 export class ShuttleRunVideoDetector {
   private last_x: number | null = null;
   private direction: string | null = null;
@@ -432,13 +458,15 @@ export class ShuttleRunVideoDetector {
   private status = 'Waiting';
   private x_history: number[] = [];
   private dir_history: string[] = [];
+  private reps: RepData[] = [];
+  private current_distance = 0;
 
-  private readonly THRESHOLD_PIX = 0.005;
+  private readonly THRESHOLD_PIX = 0.005; // 0.5% of frame width
   private readonly DIR_FRAMES = 3;
-  private readonly PIXEL_TO_M = 0.01;
+  private readonly PIXEL_TO_M = 10.0; // For normalized coords: 1.0 = ~10m (typical shuttle run distance)
   private readonly SMOOTH_N = 5;
 
-  process(landmarks: Landmark[], time: number): { count: number; status: string; distance: number } {
+  process(landmarks: Landmark[], time: number): RepData[] {
     const leftAnkle = landmarks[27];
     const rightAnkle = landmarks[28];
     const leftFoot = landmarks[31];
@@ -477,6 +505,13 @@ export class ShuttleRunVideoDetector {
             if (confirmed_direction === 'backward') {
               this.run_count++;
               this.status = 'Returning';
+
+              // Add rep when turning back
+              this.reps.push({
+                count: this.run_count,
+                timestamp: Math.round(time * 1000) / 1000,
+                correct: true
+              });
             } else {
               this.status = 'Running Towards';
             }
@@ -486,33 +521,21 @@ export class ShuttleRunVideoDetector {
     }
 
     this.last_x = smoothed_x;
+    this.current_distance = this.start_x !== null ? Math.abs(smoothed_x - this.start_x) * this.PIXEL_TO_M : 0;
 
-    const distance = this.start_x !== null ? Math.abs(smoothed_x - this.start_x) * this.PIXEL_TO_M : 0;
-
-    return {
-      count: this.run_count,
-      status: this.status,
-      distance: distance
-    };
+    return this.reps;
   }
 
   getState() { return this.status; }
   getDistance() {
-    if (this.start_x === null || this.last_x === null) return 0;
-    return Math.abs(this.last_x - this.start_x) * this.PIXEL_TO_M;
+    return this.current_distance;
   }
   getRunCount() { return this.run_count; }
-  getCurrentAngle() { return undefined; }
+  getCurrentAngle() { return 0; }
   getDipTime() { return 0; }
   getCorrectCount() { return this.run_count; }
   getBadCount() { return 0; }
-  getReps() {
-    return Array.from({ length: this.run_count }, (_, i) => ({
-      count: i + 1,
-      timestamp: 0,
-      correct: true  // All runs are valid
-    }));
-  }
+  getReps() { return this.reps; }
 }
 
 // Vertical Broad Jump Video Detector - EXACT match to verticalbroadjump_video.py
@@ -520,11 +543,18 @@ export class VerticalBroadJumpVideoDetector {
   private state = 'grounded';
   private air_start_time = 0;
   private takeoff_x: number | null = null;
+  private takeoff_y: number | null = null;
+  private peak_y: number | null = null;
   private reps: RepData[] = [];
   private ankle_y_history: number[] = [];
+  private last_jump_time = 0;
 
-  private readonly Y_THRESHOLD = 0.015;
+  private readonly Y_THRESHOLD = 0.02; // 2% of frame height for takeoff
+  private readonly MIN_AIR_TIME = 0.15; // Minimum 0.15s in air
+  private readonly MIN_DISTANCE = 0.02; // Minimum 2% of frame width
+  private readonly MIN_JUMP_INTERVAL = 0.8; // At least 0.8 second between jumps
   private readonly SMOOTH_N = 5;
+  private readonly PIXEL_TO_M = 10.0; // For normalized coords
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftAnkle = landmarks[27];
@@ -539,31 +569,55 @@ export class VerticalBroadJumpVideoDetector {
 
     if (this.ankle_y_history.length < this.SMOOTH_N) return this.reps;
 
-    const min_y = Math.min(...this.ankle_y_history);
-    const max_y = Math.max(...this.ankle_y_history);
+    const avg_y = this.ankle_y_history.reduce((a, b) => a + b, 0) / this.ankle_y_history.length;
 
     if (this.state === 'grounded') {
-      if (max_y - ankle_y > this.Y_THRESHOLD) {
-        this.state = 'airborne';
-        this.air_start_time = time;
-        this.takeoff_x = ankle_x;
+      // Detect takeoff: ankles suddenly rise (y decreases)
+      if (this.takeoff_y !== null && this.takeoff_y - avg_y > this.Y_THRESHOLD) {
+        // Prevent false detections too soon after last jump
+        if (time - this.last_jump_time >= this.MIN_JUMP_INTERVAL) {
+          this.state = 'airborne';
+          this.air_start_time = time;
+          this.takeoff_x = ankle_x;
+          this.peak_y = avg_y;
+        }
       }
+      this.takeoff_y = avg_y;
     } else if (this.state === 'airborne') {
-      if (ankle_y - min_y > this.Y_THRESHOLD && this.takeoff_x !== null) {
-        this.state = 'grounded';
+      // Track peak height (minimum y)
+      if (this.peak_y === null || avg_y < this.peak_y) {
+        this.peak_y = avg_y;
+      }
+
+      // Detect landing: ankles come back down (y increases)
+      if (this.takeoff_y !== null && avg_y >= this.takeoff_y - this.Y_THRESHOLD / 2) {
         const air_time = time - this.air_start_time;
-        const jump_distance = Math.abs(ankle_x - this.takeoff_x);
+        const jump_distance = this.takeoff_x !== null ? Math.abs(ankle_x - this.takeoff_x) : 0;
+        const jump_height = this.takeoff_y !== null && this.peak_y !== null ? this.takeoff_y - this.peak_y : 0;
 
-        this.reps.push({
-          count: this.reps.length + 1,
-          takeoff_time: Math.round(this.air_start_time * 1000) / 1000,
-          landing_time: Math.round(time * 1000) / 1000,
-          air_time_s: Math.round(air_time * 1000) / 1000,
-          jump_distance_px: Math.round(jump_distance * 100) / 100,
-          correct: true  // All jumps are valid for broad jump
-        });
+        // Validate: must have minimum air time, distance, and height
+        if (air_time >= this.MIN_AIR_TIME &&
+          jump_distance >= this.MIN_DISTANCE &&
+          jump_height >= this.Y_THRESHOLD / 2) {
 
+          const distance_m = jump_distance * this.PIXEL_TO_M;
+
+          this.reps.push({
+            count: this.reps.length + 1,
+            takeoff_time: Math.round(this.air_start_time * 1000) / 1000,
+            landing_time: Math.round(time * 1000) / 1000,
+            air_time_s: Math.round(air_time * 1000) / 1000,
+            jump_distance_px: Math.round(jump_distance * 1000) / 1000,
+            jump_distance_m: Math.round(distance_m * 1000) / 1000,
+            correct: true
+          });
+
+          this.last_jump_time = time;
+        }
+
+        this.state = 'grounded';
         this.takeoff_x = null;
+        this.peak_y = null;
       }
     }
 
@@ -572,75 +626,152 @@ export class VerticalBroadJumpVideoDetector {
 
   getState() { return this.state; }
   getReps() { return this.reps; }
-  getCurrentAngle() { return undefined; }
-  getDipTime() { return 0; }
-  getAirTime() { return 0; }
+  getCurrentAngle() { return 0; }
+  getDipTime(currentTime: number) {
+    return this.state === 'airborne' ? currentTime - this.air_start_time : 0;
+  }
+  getAirTime(currentTime: number) {
+    return this.state === 'airborne' ? currentTime - this.air_start_time : 0;
+  }
+  getMaxDistance() {
+    if (this.reps.length === 0) return 0;
+    const distances = this.reps.map(r => r.jump_distance_m || 0);
+    return Math.max(...distances);
+  }
   getCorrectCount() { return this.reps.length; }
   getBadCount() { return 0; }
 }
 
-// Sit and Reach Video Detector - EXACT match to sitreach_video.py
+// Sit and Reach Video Detector - Enhanced version with state tracking
 export class SitAndReachVideoDetector {
   private max_reach_px = 0;
-  private reach_data: RepData[] = [];
   private reach_history: number[] = [];
+  private current_reach_px = 0;
+  private state: 'starting' | 'reaching' | 'holding' = 'starting';
+  private time_of_max_reach = 0;
+  private reach_data: any[] = [];
+  private baseline_foot_x: number | null = null;
+  private baseline_frames = 0;
+  private hold_frames = 0;
+  private rep_completed = false; // Track if rep is completed
+  private hold_start_time = 0;
 
-  private readonly PIXEL_TO_M = 0.0026;
+  private readonly PIXEL_TO_M = 2.6; // Adjusted for normalized coords (0-1 range)
   private readonly SMOOTH_N = 5;
+  private readonly BASELINE_FRAMES = 30; // Frames to establish baseline
+  private readonly HOLD_THRESHOLD = 0.02; // 2cm movement threshold for holding
+  private readonly HOLD_DURATION = 0.5; // Need to hold for 0.5 seconds to count as rep
 
   process(landmarks: Landmark[], time: number): RepData[] {
+    // Use foot index landmarks (31, 32) for feet position
     const leftFoot = landmarks[31];
     const rightFoot = landmarks[32];
     const foot_x = (leftFoot.x + rightFoot.x) / 2;
 
+    // Use wrist landmarks (15, 16) for hand position
     const leftWrist = landmarks[15];
     const rightWrist = landmarks[16];
     const hand_x = (leftWrist.x + rightWrist.x) / 2;
 
-    const reach_px = hand_x - foot_x;
+    // Establish baseline foot position in first frames
+    if (this.baseline_frames < this.BASELINE_FRAMES) {
+      if (this.baseline_foot_x === null) {
+        this.baseline_foot_x = foot_x;
+      } else {
+        this.baseline_foot_x = (this.baseline_foot_x * this.baseline_frames + foot_x) / (this.baseline_frames + 1);
+      }
+      this.baseline_frames++;
+      this.state = 'starting';
+    } else {
+      // Use baseline foot position for consistent measurement
+      const reference_foot_x = this.baseline_foot_x || foot_x;
 
-    this.reach_history.push(reach_px);
-    if (this.reach_history.length > this.SMOOTH_N) {
-      this.reach_history.shift();
+      // Calculate reach distance (positive = reaching forward)
+      const reach_px = hand_x - reference_foot_x;
+
+      // Smooth the reach measurement
+      this.reach_history.push(reach_px);
+      if (this.reach_history.length > this.SMOOTH_N) {
+        this.reach_history.shift();
+      }
+
+      const reach_smoothed = this.reach_history.reduce((a, b) => a + b, 0) / this.reach_history.length;
+      this.current_reach_px = reach_smoothed;
+
+      // Determine state based on reach changes
+      const prev_state = this.state;
+      if (this.max_reach_px > 0) {
+        const reach_diff = Math.abs(reach_smoothed - this.max_reach_px);
+        if (reach_diff < this.HOLD_THRESHOLD) {
+          this.hold_frames++;
+          if (this.hold_frames > 10) {
+            if (this.state !== 'holding') {
+              // Just entered holding state
+              this.hold_start_time = time;
+            }
+            this.state = 'holding';
+
+            // Check if we've held long enough to count as a rep
+            if (!this.rep_completed && (time - this.hold_start_time) >= this.HOLD_DURATION) {
+              this.rep_completed = true;
+            }
+          }
+        } else {
+          this.hold_frames = 0;
+          this.state = 'reaching';
+        }
+      } else {
+        this.state = 'reaching';
+      }
+
+      // Update max reach
+      if (reach_smoothed > this.max_reach_px) {
+        this.max_reach_px = reach_smoothed;
+        this.time_of_max_reach = time;
+        this.hold_frames = 0;
+      }
+
+      // Log reach data
+      this.reach_data.push({
+        time_s: Math.round(time * 1000) / 1000,
+        reach_px: Math.round(reach_smoothed * 1000) / 1000,
+        reach_m: Math.round(reach_smoothed * this.PIXEL_TO_M * 1000) / 1000,
+        state: this.state
+      });
     }
 
-    const reach_smoothed = this.reach_history.reduce((a, b) => a + b, 0) / this.reach_history.length;
-    const reach_m = reach_smoothed * this.PIXEL_TO_M;
-
-    if (reach_smoothed > this.max_reach_px) {
-      this.max_reach_px = reach_smoothed;
-    }
-
-    this.reach_data.push({
-      count: this.reach_data.length + 1,
-      time_s: Math.round(time * 1000) / 1000,
-      reach_px: Math.round(reach_smoothed * 100) / 100,
-      reach_m: Math.round(reach_m * 1000) / 1000
-    });
-
-    return this.reach_data;
+    // Return rep only if holding state was achieved and held long enough
+    return this.rep_completed ? [{
+      count: 1,
+      reach_m: Math.round(this.max_reach_px * this.PIXEL_TO_M * 1000) / 1000,
+      time_of_max: Math.round(this.time_of_max_reach * 1000) / 1000,
+      correct: true
+    }] : [];
   }
 
   getCurrentReach() {
-    return this.reach_history.length > 0
-      ? (this.reach_history.reduce((a, b) => a + b, 0) / this.reach_history.length) * this.PIXEL_TO_M
-      : 0;
+    return this.current_reach_px * this.PIXEL_TO_M;
   }
   getMaxReach() {
     return this.max_reach_px * this.PIXEL_TO_M;
   }
-  getReachData() { return this.reach_data; }
-  getState() { return 'reaching'; }
-  getCurrentAngle() { return undefined; }
+  getState() {
+    return this.state;
+  }
+  getCurrentAngle() { return 0; }
   getDipTime() { return 0; }
-  getCorrectCount() { return this.reach_data.length; }
+  getCorrectCount() { return this.rep_completed ? 1 : 0; }
   getBadCount() { return 0; }
   getReps() {
-    return this.reach_data.length > 0 ? [{
+    return this.rep_completed ? [{
       count: 1,
       reach_m: this.getMaxReach(),
-      correct: true  // All reaches are valid
+      time_of_max: this.time_of_max_reach,
+      correct: true
     }] : [];
+  }
+  getReachData() {
+    return this.reach_data;
   }
 }
 

@@ -22,22 +22,11 @@ import lowerBodyImage from '@/assets/challenges/lower-body.jpg';
 import paraAthleteImage from '@/assets/challenges/para-athlete.jpg';
 
 // Import activity images
-import assistedChinDipImage from '@/assets/activities/assisted-chin-dip.jpg';
 import modifiedShuttleRunImage from '@/assets/activities/modified-shuttle-run.jpg';
-import assistedShuttleRunImage from '@/assets/activities/assisted-shuttle-run.jpg';
-import enduranceRunImage from '@/assets/activities/800m-endurance-run.jpg';
-import shuttleRunImage from '@/assets/activities/4x10m-shuttle-run.jpg';
-import standingStartImage from '@/assets/activities/30m-standing-start.jpg';
-import medicineBallThrowImage from '@/assets/activities/medicine-ball-throw.jpg';
-import standingBroadJumpImage from '@/assets/activities/standing-broad-jump.jpg';
-import standingVerticalJumpImage from '@/assets/activities/standing-vertical-jump.jpg';
 import wideArmPushupImage from '@/assets/activities/wide-arm-pushup.jpg';
 import kneePushupImage from '@/assets/activities/knee-pushup.jpg';
 import inclinedPushupImage from '@/assets/activities/inclined-pushup.jpg';
-import jumpingJackImage from '@/assets/activities/jumping-jack.jpg';
-import chestStretchImage from '@/assets/activities/chest-stretch.jpg';
-import cobraStretchImage from '@/assets/activities/cobra-stretch.jpg';
-import plankImage from '@/assets/activities/plank.jpg';
+import sitReachImage from '@/assets/activities/sit-reach.jpg';
 import sitUpsImage from '@/assets/activities/sit-ups.jpg';
 import shuttleRunGeneralImage from '@/assets/activities/shuttle-run.jpg';
 import verticalJumpImage from '@/assets/activities/vertical-jump.jpg';
@@ -126,7 +115,7 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
   };
 
   const activityTags = [
-    'Flexibility', 'Endurance', 'Arm', 'Chest', 'Shoulder', 'Leg', 'Para-Athlete'
+    'Flexibility', 'Endurance', 'Arm', 'Chest', 'Leg', 'Para-Athlete'
   ];
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -144,30 +133,17 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
     { name: 'Inclined Push-up', rating: 4.5, image: inclinedPushupImage, muscles: 'Chest, Arms', tags: ['Arm', 'Chest'] },
     { name: 'Knee Push-up', rating: 4.3, image: kneePushupImage, muscles: 'Chest, Arms', tags: ['Arm', 'Chest', 'Para-Athlete'] },
     { name: 'Wide Arm Push-up', rating: 4.6, image: wideArmPushupImage, muscles: 'Chest, Arms', tags: ['Arm', 'Chest'] },
-    { name: 'Assisted Chin & Dip', rating: 4.4, image: assistedChinDipImage, muscles: 'Arms', tags: ['Arm', 'Para-Athlete'] },
     
     // Leg exercises
     { name: 'Vertical Jump', rating: 4.6, image: verticalJumpImage, muscles: 'Legs', tags: ['Leg'] },
-    { name: 'Standing Vertical Jump', rating: 4.7, image: standingVerticalJumpImage, muscles: 'Legs', tags: ['Leg'] },
-    { name: 'Standing Broad Jump', rating: 4.8, image: standingBroadJumpImage, muscles: 'Legs', tags: ['Leg'] },
-    { name: '30-Meter Standing Start', rating: 4.5, image: standingStartImage, muscles: 'Legs', tags: ['Leg'] },
     
     // Endurance exercises
     { name: 'Shuttle Run', rating: 4.8, image: shuttleRunGeneralImage, muscles: 'Full Body', tags: ['Endurance', 'Leg'] },
-    { name: '4 × 10-Meter Shuttle Run', rating: 4.7, image: shuttleRunImage, muscles: 'Full Body', tags: ['Endurance', 'Leg'] },
-    { name: '800-Meter Endurance Run', rating: 4.9, image: enduranceRunImage, muscles: 'Full Body', tags: ['Endurance'] },
-    { name: 'Assisted Shuttle Run', rating: 4.3, image: assistedShuttleRunImage, muscles: 'Full Body', tags: ['Endurance', 'Para-Athlete'] },
     { name: 'Modified Shuttle Run', rating: 4.2, image: modifiedShuttleRunImage, muscles: 'Full Body', tags: ['Endurance', 'Para-Athlete'] },
     
     // Flexibility exercises
-    { name: 'Cobra Stretch', rating: 4.5, image: cobraStretchImage, muscles: 'Back', tags: ['Flexibility'] },
-    { name: 'Chest Stretch', rating: 4.4, image: chestStretchImage, muscles: 'Chest', tags: ['Flexibility'] },
-    { name: 'Sit-ups', rating: 4.7, image: sitUpsImage, muscles: 'Core', tags: ['Flexibility'] },
-    
-    // Core/General exercises
-    { name: 'Plank', rating: 4.9, image: plankImage, muscles: 'Core', tags: [] },
-    { name: 'Jumping Jack', rating: 4.6, image: jumpingJackImage, muscles: 'Full Body', tags: [] },
-    { name: 'Medicine Ball Throw', rating: 4.8, image: medicineBallThrowImage, muscles: 'Shoulders, Arms', tags: ['Shoulder'] }
+    { name: 'Sit Reach', rating: 4.5, image: sitReachImage, muscles: 'Hamstrings & Lower Back', tags: ['Flexibility'] },
+    { name: 'Sit-ups', rating: 4.7, image: sitUpsImage, muscles: 'Core', tags: ['Flexibility'] }
   ];
 
   const getFilteredActivities = () => {

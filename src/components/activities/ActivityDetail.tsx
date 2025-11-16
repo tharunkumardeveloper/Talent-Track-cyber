@@ -117,21 +117,23 @@ const activityContent = {
     ],
     outputFields: ['hold_duration_sec', 'interruptions_count', 'avg_hip_drop_mm', 'total_time']
   },
-  'Cobra Stretch': {
-    description: 'Mobility stretch for lumbar extension and thoracic mobility.',
-    muscles: ['Erector Spinae', 'Lower Trapezius', 'Rectus Abdominis'],
+  'Sit Reach': {
+    description: 'Classic flexibility test measuring hamstring and lower back flexibility by reaching forward while seated.',
+    muscles: ['Hamstrings', 'Lower Back', 'Erector Spinae', 'Calves'],
     category: 'Flexibility',
     steps: [
-      'Lie prone, hands under shoulders, press chest up into extension.',
-      'Keep pelvis grounded and breathe slowly.',
-      'Hold for prescribed time.'
+      'Sit on floor with legs straight and feet against a box or wall.',
+      'Place hands together and reach forward slowly.',
+      'Hold the maximum reach position for 2 seconds.',
+      'Measure the distance reached past your toes.'
     ],
     mistakes: [
-      'Pushing through lower back only',
-      'Lifting pelvis',
-      'Neck overextension'
+      'Bending knees during reach',
+      'Bouncing or jerking movements',
+      'Not keeping back straight',
+      'Holding breath instead of breathing normally'
     ],
-    outputFields: ['hold_time_sec', 'max_extension_angle_deg', 'perceived_comfort', 'repetitions']
+    outputFields: ['max_reach_m', 'reach_time_s', 'flexibility_rating']
   },
   'Chest Stretch': {
     description: 'Static or dynamic stretch targeting the pectorals to improve shoulder mobility.',
@@ -225,7 +227,7 @@ const activityContent = {
     outputFields: ['jump_count', 'max_height_m', 'avg_height', 'ground_contact_time_sec']
   },
   'Standing Broad Jump': {
-    description: 'Horizontal explosive jump for lower-body power.',
+    description: 'Horizontal explosive jump for lower-body power (also known as Vertical Broad Jump).',
     muscles: ['Glutes', 'Hamstrings', 'Quadriceps'],
     category: 'Power Assessment',
     steps: [
@@ -347,9 +349,24 @@ const activityContent = {
   }
 };
 
+// Preview GIF mapping
+const previewGifs: { [key: string]: string } = {
+  'Push-ups': '/pushup.gif',
+  'Pull-ups': '/pullup.gif',
+  'Sit-ups': '/situp.gif',
+  'Vertical Jump': '/verticaljump.gif',
+  'Shuttle Run': '/shuttlerun.gif',
+  'Modified Shuttle Run': '/shuttlerun.gif',
+  'Sit Reach': '/sit&reach.gif',
+  'Inclined Push-up': '/pushup.gif',
+  'Knee Push-up': '/kneepushup.gif',
+  'Wide Arm Push-up': '/pushup.gif'
+};
+
 const ActivityDetail = ({ activity, onBack, onStartWorkout }: ActivityDetailProps) => {
 
   const content = activityContent[activity.name as keyof typeof activityContent];
+  const previewGif = previewGifs[activity.name];
   
   // Scroll to top when component mounts
   useEffect(() => {
@@ -420,7 +437,7 @@ const ActivityDetail = ({ activity, onBack, onStartWorkout }: ActivityDetailProp
           </Button>
         </div>
         <p className="text-xs text-center text-muted-foreground mt-3">
-          Upload a recorded video or start a live workout session
+          Click Upload to select a video file directly
         </p>
       </div>
 
@@ -432,6 +449,24 @@ const ActivityDetail = ({ activity, onBack, onStartWorkout }: ActivityDetailProp
           <Badge variant="outline" className="mb-4">{content.category}</Badge>
           <p className="text-muted-foreground">{content.description}</p>
         </div>
+
+        {/* Preview GIF */}
+        {previewGif && (
+          <div className="py-6 border-b">
+            <h3 className="font-semibold mb-3">How It Looks</h3>
+            <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
+              <img 
+                src={previewGif}
+                alt={`${activity.name} demonstration`}
+                className="max-w-full max-h-full object-contain"
+                loading="eager"
+                onError={(e) => {
+                  console.error('GIF failed to load:', previewGif);
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Muscles */}
         <div className="py-6 border-b">

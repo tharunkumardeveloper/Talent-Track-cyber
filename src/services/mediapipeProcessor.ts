@@ -68,8 +68,10 @@ export const WORKOUT_MAPPING: { [key: string]: { video: string; live: string } }
   'Sit-ups': { video: 'situp_video', live: 'situp_live' },
   'Vertical Jump': { video: 'verticaljump_video', live: 'verticaljump_live' },
   'Shuttle Run': { video: 'shuttlerun_video', live: 'shuttlerun_live' },
-  'Sit Reach': { video: 'sitreach_video', live: '' },
-  'Vertical Broad Jump': { video: 'verticalbroadjump_video', live: '' }
+  'Modified Shuttle Run': { video: 'shuttlerun_video', live: 'shuttlerun_live' }, // Same as Shuttle Run
+  'Sit Reach': { video: 'sitreach_video', live: 'sitreach_live' },
+  'Vertical Broad Jump': { video: 'verticalbroadjump_video', live: 'verticalbroadjump_live' },
+  'Standing Broad Jump': { video: 'verticalbroadjump_video', live: 'verticalbroadjump_live' }
 };
 
 class MediaPipeProcessor {
@@ -136,7 +138,7 @@ class MediaPipeProcessor {
       return new Blob([], { type: 'video/webm' });
     }
 
-    console.log(`Creating video: ${frames.length} frames at ${fps}fps`);
+    console.log(`Creating video: ${frames.length} frames at ${fps.toFixed(2)}fps`);
     console.log(`Target duration: ${actualDuration?.toFixed(2)}s`);
 
     const tempCanvas = document.createElement('canvas');
@@ -167,8 +169,13 @@ class MediaPipeProcessor {
 
     return new Promise((resolve) => {
       let frameIndex = 0;
-      const frameDuration = 1000 / fps;
+      // CRITICAL: Calculate frame duration based on actual duration, not FPS
+      // This ensures the video plays at the correct speed
+      const totalDurationMs = actualDuration ? actualDuration * 1000 : (frames.length / fps) * 1000;
+      const frameDuration = totalDurationMs / frames.length;
       const startTime = performance.now();
+      
+      console.log(`Frame duration: ${frameDuration.toFixed(2)}ms per frame`);
 
       // Use setInterval for consistent timing
       const interval = setInterval(() => {
@@ -280,28 +287,17 @@ class MediaPipeProcessor {
         this.processedFrames = [];
         console.log('Starting video processing (frame-by-frame)...');
 
-        // Dynamic playback rate based on video duration
-        let playbackRate = 1.0;
-        if (video.duration <= 30) {
-          playbackRate = 0.5; // Short videos: half speed for accuracy
-        } else if (video.duration <= 60) {
-          playbackRate = 0.75; // Medium videos: 3/4 speed
-        } else {
-          playbackRate = 1.0; // Long videos: normal speed (we'll process every other frame)
-        }
-        
-        video.playbackRate = playbackRate;
+        // Use normal playback rate for smooth processing
+        // The browser will naturally throttle to ~30fps which is perfect
+        video.playbackRate = 1.0;
         video.currentTime = 0;
         processingStarted = true;
 
-        // For very long videos, skip frames intelligently
-        if (video.duration > 120) {
-          skipEveryNFrames = 2; // Process every other frame for videos > 2 minutes
-          console.log(`⚡ Long video detected - processing every other frame for speed`);
-        }
+        // Process every frame for accurate output
+        skipEveryNFrames = 1;
 
         console.log(`📹 Video duration: ${video.duration.toFixed(1)}s`);
-        console.log(`⚡ Playback rate: ${playbackRate}x for optimal processing`);
+        console.log(`⚡ Processing at normal speed with 30fps target`);
 
         // Start playing
         video.play().then(() => {
@@ -357,19 +353,34 @@ class MediaPipeProcessor {
 
         // Check if video ended
         if (video.ended || video.currentTime >= video.duration) {
-          console.log('Video processing complete!');
+          console.log('✅ Video processing complete!');
+          console.log('  Video duration:', video.duration.toFixed(2), 'seconds');
           console.log('  Frames collected:', this.processedFrames.length);
+          console.log('  Expected frames:', Math.floor(video.duration * originalFPS));
+          console.log('  Frame rate:', (this.processedFrames.length / video.duration).toFixed(2), 'fps');
 
           const finalReps = detector.getReps ? detector.getReps() : [];
           const actualDuration = video.duration;
 
-          // Use original FPS to maintain video speed
-          console.log(`Creating video at ${originalFPS} fps to match original speed`);
-          console.log(`Collected ${this.processedFrames.length} frames over ${actualDuration.toFixed(2)}s`);
+          // Verify we have enough frames
+          const minExpectedFrames = Math.floor(video.duration * 15); // At least 15fps
+          if (this.processedFrames.length < minExpectedFrames) {
+            console.warn(`⚠️ Only collected ${this.processedFrames.length} frames, expected at least ${minExpectedFrames}`);
+          }
+
+          // CRITICAL: Calculate the exact playback FPS needed to match original duration
+          // If we collected 250 frames over 10 seconds, we need to play at 25fps to get 10s duration
+          const playbackFPS = this.processedFrames.length / actualDuration;
+          
+          console.log(`📹 Original video: ${actualDuration.toFixed(2)}s`);
+          console.log(`📊 Frames collected: ${this.processedFrames.length}`);
+          console.log(`🎬 Playback FPS: ${playbackFPS.toFixed(2)} (${this.processedFrames.length} frames ÷ ${actualDuration.toFixed(2)}s)`);
+          console.log(`⚡ Output duration will be: ${actualDuration.toFixed(2)}s (matches original)`);
 
           console.log('Creating video from', this.processedFrames.length, 'frames...');
-          this.createVideoFromFrames(this.processedFrames, originalFPS, actualDuration).then(videoBlob => {
-            console.log('Created video blob:', videoBlob.size, 'bytes');
+          // Use playbackFPS for encoding, and actualDuration for metadata
+          this.createVideoFromFrames(this.processedFrames, playbackFPS, actualDuration).then(videoBlob => {
+            console.log('✅ Created video blob:', videoBlob.size, 'bytes');
             clearTimeout(safetyTimeout);
             const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob);
             resolve(result);
@@ -379,16 +390,11 @@ class MediaPipeProcessor {
 
         const currentTime = video.currentTime;
 
-        // Throttle to target FPS
-        if (!isProcessing && currentTime - lastProcessTime >= (1 / targetFPS) - 0.005) {
-          frameSkipCounter++;
-          
-          // Skip frames for very long videos
-          if (frameSkipCounter % skipEveryNFrames !== 0) {
-            requestAnimationFrame(processFrame);
-            return;
-          }
-          
+        // Process frames at target FPS (30fps) for smooth output
+        const timeSinceLastFrame = currentTime - lastProcessTime;
+        const minFrameTime = 1 / targetFPS;
+        
+        if (!isProcessing && timeSinceLastFrame >= minFrameTime) {
           isProcessing = true;
           lastProcessTime = currentTime;
           frameCount++;
@@ -402,20 +408,15 @@ class MediaPipeProcessor {
           // Draw video frame to canvas (like Python's frame processing)
           this.ctx!.drawImage(video, 0, 0, this.canvas!.width, this.canvas!.height);
 
-          // Process with MediaPipe and WAIT for result
+          // Process with MediaPipe - send and continue (don't wait)
           if (this.pose) {
             try {
-              const currentPoseCount = poseResultsReceived;
-              await this.pose.send({ image: video });
-
-              // Wait for onResults to be called (max 100ms)
-              let waitCount = 0;
-              while (poseResultsReceived === currentPoseCount && waitCount < 10) {
-                await new Promise(resolve => setTimeout(resolve, 10));
-                waitCount++;
-              }
+              // Send frame to MediaPipe (async, non-blocking)
+              this.pose.send({ image: video }).catch((err: any) => {
+                console.error('MediaPipe processing error:', err);
+              });
             } catch (err) {
-              console.error('MediaPipe processing error:', err);
+              console.error('MediaPipe send error:', err);
             }
           }
 
@@ -453,8 +454,6 @@ class MediaPipeProcessor {
           if (frameCount % 3 === 0) {
             onProgress(progress, lastCapturedFrame || '', currentReps.length, metrics);
           }
-
-          isProcessing = false;
         }
 
         requestAnimationFrame(processFrame);
@@ -518,6 +517,22 @@ class MediaPipeProcessor {
         // Draw with updated metrics (EXACTLY like Python)
         const correctCount = reps.filter(r => r.correct === true || r.correct === 'True').length;
         const incorrectCount = reps.length - correctCount;
+        
+        // Get distance for shuttle run, broad jump, and sit reach
+        let distance = undefined;
+        let currentReach = undefined;
+        if ((detector as any).getDistance) {
+          distance = (detector as any).getDistance();
+        } else if ((detector as any).getMaxDistance) {
+          distance = (detector as any).getMaxDistance();
+        } else if ((detector as any).getMaxReach) {
+          distance = (detector as any).getMaxReach();
+          // Also get current reach for sit-and-reach
+          if ((detector as any).getCurrentReach) {
+            currentReach = (detector as any).getCurrentReach();
+          }
+        }
+        
         this.drawResults(
           results,
           activityName,
@@ -528,7 +543,9 @@ class MediaPipeProcessor {
           incorrectCount,
           video.currentTime,
           dipTime,
-          maxJumpHeight
+          maxJumpHeight,
+          distance,
+          currentReach
         );
 
         // Capture frame for preview (every 10th frame)
@@ -540,11 +557,19 @@ class MediaPipeProcessor {
           }
         }
 
-        // Store frame for video output
+        // Store frame for video output immediately after drawing
         if (this.ctx && this.canvas) {
           const frameData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
           this.processedFrames.push(frameData);
+          
+          // Log every 60 frames to track progress
+          if (this.processedFrames.length % 60 === 0) {
+            console.log(`✅ Stored ${this.processedFrames.length} frames with pose data`);
+          }
         }
+        
+        // Mark processing as complete for this frame
+        isProcessing = false;
       });
 
       video.onerror = (e) => {
@@ -581,11 +606,14 @@ class MediaPipeProcessor {
 
         console.log('Timeout triggered - Reps:', finalReps.length, 'Duration:', actualDuration, 'Frames:', this.processedFrames.length);
 
-        // Use original FPS to maintain video speed
-        console.log(`Creating video at ${originalFPS} fps to match original speed`);
+        // Calculate the exact playback FPS needed to match original duration
+        const playbackFPS = this.processedFrames.length / actualDuration;
+        console.log(`📹 Original video: ${actualDuration.toFixed(2)}s`);
+        console.log(`📊 Frames collected: ${this.processedFrames.length}`);
+        console.log(`🎬 Playback FPS: ${playbackFPS.toFixed(2)}`);
 
-        // Create video from collected frames at original FPS
-        this.createVideoFromFrames(this.processedFrames, originalFPS, actualDuration).then(videoBlob => {
+        // Create video from collected frames with calculated FPS
+        this.createVideoFromFrames(this.processedFrames, playbackFPS, actualDuration).then(videoBlob => {
           const result = this.calculateStats(finalReps, activityName, actualDuration, videoBlob);
           resolve(result);
         }).catch(err => {
@@ -598,7 +626,7 @@ class MediaPipeProcessor {
     });
   }
 
-  private drawResults(results: any, activityName: string, repCount: number, state: string, currentAngle?: number, correctCount?: number, incorrectCount?: number, currentTime?: number, dipTime?: number, maxJumpHeight?: number) {
+  private drawResults(results: any, activityName: string, repCount: number, state: string, currentAngle?: number, correctCount?: number, incorrectCount?: number, currentTime?: number, dipTime?: number, maxJumpHeight?: number, distance?: number, currentReach?: number) {
     if (!this.ctx || !this.canvas) return;
 
     // Get MediaPipe drawing functions
@@ -635,13 +663,29 @@ class MediaPipeProcessor {
       yPos += 25;
     }
 
-    // 2. Rep counter (Cyan)
-    this.ctx.fillStyle = '#00FFFF';
-    const repLabel = activityName.includes('Jump') ? 'Jump Count' : activityName;
-    const repText = `${repLabel}: ${repCount}`;
-    this.ctx.strokeText(repText, 10, yPos);
-    this.ctx.fillText(repText, 10, yPos);
-    yPos += 25;
+    // 1b. Current Reach (Green) - for sit and reach, show current reach prominently
+    if (currentReach !== undefined && activityName.includes('Reach')) {
+      this.ctx.fillStyle = '#00FF00';
+      const currentReachText = `Current Reach: ${currentReach.toFixed(2)}m`;
+      this.ctx.strokeText(currentReachText, 10, yPos);
+      this.ctx.fillText(currentReachText, 10, yPos);
+      yPos += 25;
+    }
+
+    // 2. Rep counter (Cyan) - skip for sit and reach
+    if (!activityName.includes('Reach')) {
+      this.ctx.fillStyle = '#00FFFF';
+      let repLabel = activityName;
+      if (activityName.includes('Jump')) {
+        repLabel = 'Jump Count';
+      } else if (activityName.includes('Shuttle')) {
+        repLabel = 'Run Count';
+      }
+      const repText = `${repLabel}: ${repCount}`;
+      this.ctx.strokeText(repText, 10, yPos);
+      this.ctx.fillText(repText, 10, yPos);
+      yPos += 25;
+    }
 
     // 3. Max Jump Height (Green) - for vertical jump
     if (maxJumpHeight !== undefined && maxJumpHeight > 0) {
@@ -652,8 +696,25 @@ class MediaPipeProcessor {
       yPos += 25;
     }
 
+    // 3b. Distance/Reach (Cyan) - for shuttle run, broad jump, and sit reach (max reach)
+    if (distance !== undefined && distance > 0) {
+      this.ctx.fillStyle = '#00FFFF';
+      let distanceLabel = 'Distance';
+      if (activityName.includes('Broad')) {
+        distanceLabel = 'Max Distance';
+      } else if (activityName.includes('Reach')) {
+        distanceLabel = 'Max Reach';
+      }
+      const distanceText = `${distanceLabel}: ${distance.toFixed(2)}m`;
+      this.ctx.strokeText(distanceText, 10, yPos);
+      this.ctx.fillText(distanceText, 10, yPos);
+      yPos += 25;
+    }
+
     // 4. State (Yellow/Green based on state)
-    this.ctx.fillStyle = state === 'airborne' || state === 'down' ? '#00FF00' : '#C8C800';
+    const stateColor = state === 'airborne' || state === 'down' || state === 'holding' ? '#00FF00' : 
+                       state === 'reaching' ? '#00FFFF' : '#C8C800';
+    this.ctx.fillStyle = stateColor;
     const stateText = `State: ${state}`;
     this.ctx.strokeText(stateText, 10, yPos);
     this.ctx.fillText(stateText, 10, yPos);
@@ -812,6 +873,10 @@ class MediaPipeProcessor {
       // Draw skeleton overlay
       const correctCount = reps.filter(r => r.correct === 'True' || r.correct === true).length;
       const incorrectCount = reps.length - correctCount;
+      
+      // Get distance for shuttle run
+      const distance = (detector as any).getDistance ? (detector as any).getDistance() : undefined;
+      
       this.drawResults(
         results,
         activityName,
@@ -820,7 +885,10 @@ class MediaPipeProcessor {
         currentAngle,
         correctCount,
         incorrectCount,
-        (Date.now() - startTime) / 1000
+        (Date.now() - startTime) / 1000,
+        0, // dipTime
+        undefined, // maxJumpHeight
+        distance
       );
 
       // Call frame callback with updated canvas

@@ -28,8 +28,10 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
     'Sit-ups', 
     'Vertical Jump', 
     'Shuttle Run',
+    'Modified Shuttle Run',
     'Sit Reach',
-    'Vertical Broad Jump'
+    'Vertical Broad Jump',
+    'Standing Broad Jump'
   ];
   const isSupported = supportedActivities.includes(activity.name);
   
@@ -39,7 +41,8 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
     'Pull-ups',
     'Sit-ups',
     'Vertical Jump',
-    'Shuttle Run'
+    'Shuttle Run',
+    'Modified Shuttle Run'
   ];
   const hasLiveRecording = liveRecordingSupported.includes(activity.name);
 

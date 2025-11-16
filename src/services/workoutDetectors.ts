@@ -400,7 +400,7 @@ export class ShuttleRunDetector {
   
   private readonly THRESHOLD_PIX = 0.005;
   private readonly DIR_FRAMES = 3;
-  private readonly PIXEL_TO_M = 0.01;
+  private readonly PIXEL_TO_M = 10.0; // For normalized coords: 1.0 = ~10m
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftAnkle = landmarks[27];
@@ -470,12 +470,15 @@ export class VerticalBroadJumpDetector {
   private airStartTime = 0;
   private takeoffX: number | null = null;
   private takeoffY: number | null = null;
+  private peakY: number | null = null;
   private reps: RepData[] = [];
   private ankleYBuffer = new SmoothingBuffer(5);
+  private lastJumpTime = 0;
   
-  private readonly Y_THRESHOLD = 0.015; // 1.5% of frame height
-  private readonly MIN_DISTANCE = 0.1; // Minimum 10cm horizontal distance
+  private readonly Y_THRESHOLD = 0.03; // 3% of frame height
+  private readonly MIN_DISTANCE = 0.05; // Minimum 5% of frame width
   private readonly MIN_AIR_TIME = 0.2; // Minimum 0.2s air time
+  private readonly MIN_JUMP_INTERVAL = 1.0; // At least 1 second between jumps
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftAnkle = landmarks[27];
@@ -483,43 +486,53 @@ export class VerticalBroadJumpDetector {
     const ankleY = this.ankleYBuffer.add((leftAnkle.y + rightAnkle.y) / 2);
     const ankleX = (leftAnkle.x + rightAnkle.x) / 2;
 
-    const buffer = Array.from({ length: 5 }, (_, i) => ankleY); // Simulate history
-    const minY = Math.min(...buffer);
-    const maxY = Math.max(...buffer);
-
     if (this.state === 'grounded') {
-      // Detect takeoff: sudden rise of ankles
-      if (maxY - ankleY > this.Y_THRESHOLD) {
-        this.state = 'airborne';
-        this.airStartTime = time;
-        this.takeoffX = ankleX;
-        this.takeoffY = ankleY;
+      // Detect takeoff: ankles suddenly rise (y decreases)
+      if (this.takeoffY !== null && this.takeoffY - ankleY > this.Y_THRESHOLD) {
+        // Prevent false detections too soon after last jump
+        if (time - this.lastJumpTime >= this.MIN_JUMP_INTERVAL) {
+          this.state = 'airborne';
+          this.airStartTime = time;
+          this.takeoffX = ankleX;
+          this.peakY = ankleY;
+        }
       }
+      this.takeoffY = ankleY;
     } else if (this.state === 'airborne') {
-      // Detect landing: ankles come back down
-      if (ankleY - minY > this.Y_THRESHOLD && this.takeoffX !== null) {
-        this.state = 'grounded';
+      // Track peak height (minimum y)
+      if (this.peakY === null || ankleY < this.peakY) {
+        this.peakY = ankleY;
+      }
+
+      // Detect landing: ankles come back down (y increases)
+      if (this.takeoffY !== null && ankleY >= this.takeoffY - this.Y_THRESHOLD / 2) {
         const airTime = time - this.airStartTime;
-        const jumpDistance = Math.abs(ankleX - this.takeoffX);
+        const jumpDistance = this.takeoffX !== null ? Math.abs(ankleX - this.takeoffX) : 0;
+        const jumpHeight = this.takeoffY !== null && this.peakY !== null ? this.takeoffY - this.peakY : 0;
         
-        // Validate: minimum distance and air time
+        // Validate: minimum distance, air time, and height
         const goodDistance = jumpDistance >= this.MIN_DISTANCE;
         const goodAirTime = airTime >= this.MIN_AIR_TIME;
-        const isCorrect = goodDistance && goodAirTime;
+        const goodHeight = jumpHeight >= this.Y_THRESHOLD / 2;
+        const isCorrect = goodDistance && goodAirTime && goodHeight;
         
-        this.reps.push({
-          count: this.reps.length + 1,
-          timestamp: time,
-          downTime: this.airStartTime,
-          upTime: time,
-          airTime: airTime,
-          distance: jumpDistance,
-          correct: isCorrect,
-          state: 'completed'
-        });
+        if (isCorrect) {
+          this.reps.push({
+            count: this.reps.length + 1,
+            timestamp: time,
+            downTime: this.airStartTime,
+            upTime: time,
+            airTime: airTime,
+            distance: jumpDistance,
+            correct: true,
+            state: 'completed'
+          });
+          this.lastJumpTime = time;
+        }
         
+        this.state = 'grounded';
         this.takeoffX = null;
-        this.takeoffY = null;
+        this.peakY = null;
       }
     }
 
@@ -539,7 +552,7 @@ export class SitAndReachDetector {
   private reps: RepData[] = [];
   private reachBuffer = new SmoothingBuffer(5);
   
-  private readonly PIXEL_TO_M = 0.0026;
+  private readonly PIXEL_TO_M = 2.6; // Adjusted for normalized coords
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftFoot = landmarks[31];
