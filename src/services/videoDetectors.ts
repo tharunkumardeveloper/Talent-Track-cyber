@@ -82,6 +82,11 @@ export class PushupVideoDetector {
 
     const elbow_angle_sm = this.angle_history.reduce((a, b) => a + b, 0) / this.angle_history.length;
 
+    // Track minimum angle while in down state
+    if (this.state === 'down' && elbow_angle_sm < this.current_dip_min_angle) {
+      this.current_dip_min_angle = elbow_angle_sm;
+    }
+
     if (this.state === 'up' && elbow_angle_sm <= this.DOWN_ANGLE) {
       this.state = 'down';
       this.in_dip = true;
@@ -94,8 +99,8 @@ export class PushupVideoDetector {
         const dip_duration = time - this.dip_start_time;
         const time_since_last_rep = time - this.last_rep_time;
 
-        // Count all dips as reps (if not too fast)
-        const is_valid_rep = time_since_last_rep >= this.MIN_REP_INTERVAL;
+        // More lenient interval check - 0.3s instead of 0.5s for faster reps
+        const is_valid_rep = time_since_last_rep >= 0.3;
 
         // Mark as correct if: good angle (90° or less) AND proper duration (at least 0.2s)
         const has_good_depth = this.current_dip_min_angle <= this.DOWN_ANGLE;

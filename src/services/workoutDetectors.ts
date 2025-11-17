@@ -71,11 +71,13 @@ export class PushupDetector {
   private dipStartTime = 0;
   private currentMinAngle = 180;
   private reps: RepData[] = [];
-  private angleBuffer = new SmoothingBuffer(3);
+  private angleBuffer = new SmoothingBuffer(5); // Match video detector smoothing
+  private lastRepTime = 0;
   
-  private readonly DOWN_ANGLE = 75;
+  private readonly DOWN_ANGLE = 90; // Match video detector
   private readonly UP_ANGLE = 110;
   private readonly MIN_DIP_DURATION = 0.2;
+  private readonly MIN_REP_INTERVAL = 0.3; // Match video detector
 
   process(landmarks: Landmark[], time: number): RepData[] {
     const leftShoulder = landmarks[11];
@@ -89,6 +91,11 @@ export class PushupDetector {
     const rightAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
     const elbowAngle = this.angleBuffer.add((leftAngle + rightAngle) / 2);
 
+    // Track minimum angle while in down state
+    if (this.state === 'down' && elbowAngle < this.currentMinAngle) {
+      this.currentMinAngle = elbowAngle;
+    }
+
     if (this.state === 'up' && elbowAngle <= this.DOWN_ANGLE) {
       this.state = 'down';
       this.inDip = true;
@@ -98,26 +105,33 @@ export class PushupDetector {
       this.state = 'up';
       if (this.inDip) {
         const dipDuration = time - this.dipStartTime;
-        const isCorrect = this.currentMinAngle <= this.DOWN_ANGLE && dipDuration >= this.MIN_DIP_DURATION;
+        const timeSinceLastRep = time - this.lastRepTime;
         
-        this.reps.push({
-          count: this.reps.length + 1,
-          downTime: this.dipStartTime,
-          upTime: time,
-          dipDuration: dipDuration,
-          minElbowAngle: this.currentMinAngle,
-          correct: isCorrect,
-          timestamp: time,
-          state: 'completed'
-        });
+        // Only count if enough time has passed since last rep
+        const isValidRep = timeSinceLastRep >= this.MIN_REP_INTERVAL;
+        
+        if (isValidRep) {
+          const hasGoodDepth = this.currentMinAngle <= this.DOWN_ANGLE;
+          const hasGoodDuration = dipDuration >= this.MIN_DIP_DURATION;
+          const isCorrect = hasGoodDepth && hasGoodDuration;
+          
+          this.reps.push({
+            count: this.reps.length + 1,
+            downTime: this.dipStartTime,
+            upTime: time,
+            dipDuration: dipDuration,
+            minElbowAngle: this.currentMinAngle,
+            correct: isCorrect,
+            timestamp: time,
+            state: 'completed'
+          });
+          
+          this.lastRepTime = time;
+        }
         
         this.inDip = false;
         this.currentMinAngle = 180;
       }
-    }
-
-    if (this.inDip && elbowAngle < this.currentMinAngle) {
-      this.currentMinAngle = elbowAngle;
     }
 
     return this.reps;
