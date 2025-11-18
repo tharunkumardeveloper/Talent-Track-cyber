@@ -7,6 +7,13 @@ import { ArrowLeft, Shield, Upload, CircleCheck as CheckCircle, Circle as XCircl
 import { toast } from '@/components/ui/sonner';
 import { mediapipeProcessor } from '@/services/mediapipeProcessor';
 import { backendProcessor } from '@/services/backendProcessor';
+import { 
+  showProcessingNotification, 
+  updateProcessingNotification, 
+  showCompletionNotification,
+  cancelNotification,
+  isNativePlatform 
+} from '@/services/notificationService';
 import CSVDataDisplay from './CSVDataDisplay';
 import VideoPlayer from './VideoPlayer';
 import FramePlayer from './FramePlayer';
@@ -43,6 +50,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
   const [processingMessage, setProcessingMessage] = useState('Analyzing your workout...');
   const [useBackend, setUseBackend] = useState(false); // ALWAYS use browser processing (serverless)
   const [outputId, setOutputId] = useState<string>('');
+  const [notificationId, setNotificationId] = useState<number | null>(null);
 
   // Force browser-only mode in production
   const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
@@ -224,6 +232,10 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
       console.log('Starting browser-based video processing for:', activityName);
       console.log('Video file:', file.name, file.size, 'bytes', file.type);
 
+      // Show initial notification (works on web and mobile)
+      const notifId = await showProcessingNotification(activityName, 0);
+      setNotificationId(notifId);
+
       // Validate video file
       if (!file.type.startsWith('video/')) {
         throw new Error('Invalid file type. Please upload a video file.');
@@ -256,6 +268,11 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
           }
           setCurrentReps(reps || 0);
           setCurrentMetrics(metrics || null);
+          
+          // Update notification (works on web and mobile)
+          if (notificationId && prog % 10 === 0) {
+            updateProcessingNotification(notificationId, activityName, prog);
+          }
           
           // Update message based on progress
           if (prog < 25) {
@@ -322,6 +339,12 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
       setResult(processedResult);
       setIsProcessing(false);
       setLiveFrame(''); // Clear live frame
+
+      // Cancel processing notification and show completion notification
+      if (notificationId) {
+        await cancelNotification(notificationId);
+      }
+      await showCompletionNotification(activityName, processingResult.reps.length);
 
     } catch (error: any) {
       console.error('Error processing video:', error);
