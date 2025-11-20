@@ -7,7 +7,11 @@ import { TrendingUp, Users, Clock, Star, Trophy, ArrowRight, CheckCircle } from 
 import { FEATURED_CHALLENGES, getChallengeProgress, getCategoryColor, getDifficultyColor, type Challenge } from '@/utils/challengeSystem';
 import ChallengeDetailModal from '@/components/challenges/ChallengeDetailModal';
 
-const DiscoverTab = () => {
+interface DiscoverTabProps {
+  onStartWorkout?: (exerciseName: string) => void;
+}
+
+const DiscoverTab = ({ onStartWorkout }: DiscoverTabProps) => {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
 
@@ -176,6 +180,7 @@ const DiscoverTab = () => {
         <ChallengeDetailModal
           challenge={selectedChallenge}
           onClose={() => setSelectedChallenge(null)}
+          onStartWorkout={onStartWorkout}
         />
       )}
     </div>

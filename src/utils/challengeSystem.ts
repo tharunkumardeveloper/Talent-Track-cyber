@@ -37,14 +37,13 @@ export const FEATURED_CHALLENGES: Challenge[] = [
     description: 'Build upper body strength with progressive push-up training',
     category: 'strength',
     difficulty: 'beginner',
-    duration: '2 weeks',
+    duration: '1 week',
     participants: 2340,
     rating: 4.8,
     image: '💪',
     workouts: [
       { exercise: 'Push-ups', targetReps: 10, sets: 3 },
       { exercise: 'Push-ups', targetReps: 15, sets: 3 },
-      { exercise: 'Push-ups', targetReps: 20, sets: 3 },
     ],
     badge: {
       id: 'pushup-warrior',
@@ -63,14 +62,13 @@ export const FEATURED_CHALLENGES: Challenge[] = [
     description: 'Master the pull-up with progressive training',
     category: 'strength',
     difficulty: 'intermediate',
-    duration: '3 weeks',
+    duration: '1 week',
     participants: 1876,
     rating: 4.9,
     image: '🏋️',
     workouts: [
       { exercise: 'Pull-ups', targetReps: 5, sets: 3 },
       { exercise: 'Pull-ups', targetReps: 8, sets: 3 },
-      { exercise: 'Pull-ups', targetReps: 10, sets: 3 },
     ],
     badge: {
       id: 'pullup-master',
@@ -89,14 +87,13 @@ export const FEATURED_CHALLENGES: Challenge[] = [
     description: 'Strengthen your core with intense sit-up training',
     category: 'strength',
     difficulty: 'beginner',
-    duration: '2 weeks',
+    duration: '1 week',
     participants: 3210,
     rating: 4.7,
     image: '🔥',
     workouts: [
       { exercise: 'Sit-ups', targetReps: 20, sets: 3 },
       { exercise: 'Sit-ups', targetReps: 30, sets: 3 },
-      { exercise: 'Sit-ups', targetReps: 40, sets: 3 },
     ],
     badge: {
       id: 'core-crusher',
@@ -117,14 +114,13 @@ export const FEATURED_CHALLENGES: Challenge[] = [
     description: 'Improve speed and agility with shuttle run training',
     category: 'endurance',
     difficulty: 'intermediate',
-    duration: '2 weeks',
+    duration: '1 week',
     participants: 1543,
     rating: 4.6,
     image: '⚡',
     workouts: [
       { exercise: 'Shuttle Run', targetReps: 10, sets: 2 },
       { exercise: 'Shuttle Run', targetReps: 15, sets: 2 },
-      { exercise: 'Shuttle Run', targetReps: 20, sets: 2 },
     ],
     badge: {
       id: 'speed-demon',
@@ -143,14 +139,13 @@ export const FEATURED_CHALLENGES: Challenge[] = [
     description: 'Develop explosive power with vertical jump training',
     category: 'endurance',
     difficulty: 'beginner',
-    duration: '2 weeks',
+    duration: '1 week',
     participants: 1234,
     rating: 4.5,
     image: '🦘',
     workouts: [
       { exercise: 'Vertical Jump', targetReps: 15, sets: 3 },
       { exercise: 'Vertical Jump', targetReps: 25, sets: 3 },
-      { exercise: 'Vertical Jump', targetReps: 30, sets: 3 },
     ],
     badge: {
       id: 'jump-master',
@@ -171,14 +166,13 @@ export const FEATURED_CHALLENGES: Challenge[] = [
     description: 'Improve flexibility and range of motion',
     category: 'flexibility',
     difficulty: 'beginner',
-    duration: '3 weeks',
+    duration: '1 week',
     participants: 2890,
     rating: 4.8,
     image: '🤸',
     workouts: [
       { exercise: 'Sit Reach', targetReps: 10, sets: 2 },
       { exercise: 'Sit Reach', targetReps: 15, sets: 2 },
-      { exercise: 'Sit Reach', targetReps: 20, sets: 2 },
     ],
     badge: {
       id: 'flexibility-pro',
@@ -199,14 +193,13 @@ export const FEATURED_CHALLENGES: Challenge[] = [
     description: 'Master bodyweight exercises for total fitness',
     category: 'calisthenics',
     difficulty: 'intermediate',
-    duration: '4 weeks',
+    duration: '1 week',
     participants: 1987,
     rating: 4.7,
     image: '🤸‍♂️',
     workouts: [
       { exercise: 'Push-ups', targetReps: 20, sets: 3 },
       { exercise: 'Sit-ups', targetReps: 30, sets: 3 },
-      { exercise: 'Vertical Jump', targetReps: 20, sets: 2 },
     ],
     badge: {
       id: 'all-rounder',
@@ -227,14 +220,13 @@ export const FEATURED_CHALLENGES: Challenge[] = [
     description: 'Build strength with modified exercises',
     category: 'para-athlete',
     difficulty: 'beginner',
-    duration: '2 weeks',
+    duration: '1 week',
     participants: 987,
     rating: 4.9,
     image: '♿',
     workouts: [
       { exercise: 'Knee Push-ups', targetReps: 10, sets: 3 },
       { exercise: 'Knee Push-ups', targetReps: 15, sets: 3 },
-      { exercise: 'Knee Push-ups', targetReps: 20, sets: 3 },
     ],
     badge: {
       id: 'para-warrior',
@@ -286,7 +278,6 @@ export const FEATURED_CHALLENGES: Challenge[] = [
     workouts: [
       { exercise: 'Push-ups', targetReps: 20, sets: 3 },
       { exercise: 'Pull-ups', targetReps: 10, sets: 3 },
-      { exercise: 'Sit-ups', targetReps: 30, sets: 3 },
     ],
     badge: {
       id: 'form-master',

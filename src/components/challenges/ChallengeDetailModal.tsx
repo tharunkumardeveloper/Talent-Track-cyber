@@ -11,11 +11,11 @@ import { toast } from '@/components/ui/sonner';
 interface ChallengeDetailModalProps {
   challenge: Challenge;
   onClose: () => void;
+  onStartWorkout?: (exerciseName: string) => void;
 }
 
-const ChallengeDetailModal = ({ challenge, onClose }: ChallengeDetailModalProps) => {
+const ChallengeDetailModal = ({ challenge, onClose, onStartWorkout }: ChallengeDetailModalProps) => {
   const progress = getChallengeProgress(challenge.id);
-  const [selectedWorkoutIndex, setSelectedWorkoutIndex] = useState<number | null>(null);
 
   const handleStartWorkout = (index: number) => {
     // Store challenge context for workout completion
@@ -24,13 +24,20 @@ const ChallengeDetailModal = ({ challenge, onClose }: ChallengeDetailModalProps)
       workoutIndex: index
     }));
 
+    const workout = challenge.workouts[index];
+    
+    // Close modal first
+    onClose();
+    
+    // Navigate to workout screen
+    if (onStartWorkout) {
+      onStartWorkout(workout.exercise);
+    }
+    
     toast.success('Challenge workout started!', {
-      description: `Complete ${challenge.workouts[index].exercise} to progress`,
+      description: `Complete ${workout.targetReps} ${workout.exercise}`,
       duration: 3000
     });
-
-    // Close modal and let user start workout
-    onClose();
   };
 
   return (

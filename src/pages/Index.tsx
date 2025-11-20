@@ -117,7 +117,12 @@ const Index = () => {
 
   const handleActivitySelect = (activity: any) => {
     scrollToTop();
-    setSelectedActivity(activity);
+    // Handle both string (exercise name) and object (activity)
+    if (typeof activity === 'string') {
+      setSelectedActivity({ name: activity });
+    } else {
+      setSelectedActivity(activity);
+    }
   };
 
   const handleActivityBack = () => {
@@ -178,7 +183,7 @@ const Index = () => {
 
     switch (activeTab) {
       case 'discover':
-        return <DiscoverTab />;
+        return <DiscoverTab onStartWorkout={handleActivitySelect} />;
       case 'report':
         return <ReportTab userSetupData={userSetupData} />;
       case 'roadmap':
