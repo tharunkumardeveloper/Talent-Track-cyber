@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import ProgressiveImage from '@/components/ui/progressive-image';
 
 interface LiveRecorderProps {
   activityName: string;
@@ -957,17 +958,15 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
 
           <div className="space-y-6">
             {/* GIF Demonstration */}
-            <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-              <img 
-                src={demo.gifUrl} 
+            <div className="relative aspect-video rounded-lg overflow-hidden">
+              <ProgressiveImage
+                src={demo.gifUrl}
                 alt={`${activityName} demonstration`}
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  // Fallback if GIF fails to load
-                  (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EDemo Video%3C/text%3E%3C/svg%3E';
-                }}
+                className="w-full h-full object-contain bg-black"
+                placeholderClassName="bg-gradient-to-br from-primary/20 to-primary/5"
+                priority={true}
               />
-              <Badge className="absolute top-4 right-4 bg-primary">
+              <Badge className="absolute top-4 right-4 bg-primary z-10">
                 Demo
               </Badge>
             </div>

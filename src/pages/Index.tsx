@@ -46,9 +46,28 @@ const Index = () => {
       setIsFirstTime(false);
     }
     
-    // Preload images and GIFs in the background
-    preloadAllAssets().catch(err => {
-      console.warn('Failed to preload some assets:', err);
+    // Register service worker for offline support
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker registered:', registration.scope);
+        })
+        .catch((error) => {
+          console.warn('⚠️ Service Worker registration failed:', error);
+        });
+    }
+    
+    // Preload critical images immediately (high priority)
+    import('@/utils/imagePreloader').then(({ preloadCriticalAssets, preloadAllAssets }) => {
+      // Load critical assets first
+      preloadCriticalAssets().then(() => {
+        console.log('✅ Critical assets loaded');
+        // Then load remaining assets in background
+        preloadAllAssets().catch(err => {
+          console.warn('⚠️ Failed to preload some assets:', err);
+        });
+      });
     });
   }, []);
 

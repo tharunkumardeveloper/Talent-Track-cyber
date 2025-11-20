@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Trophy, Target, CheckCircle, Star, ArrowRight } from 'lucide-react';
+import ProgressiveImage from '@/components/ui/progressive-image';
 
 // Challenge cover images from public/challenges folder
 const pushupPowerImage = '/challenges/pushup-power.webp';
@@ -233,20 +234,16 @@ const ChallengeDetail = ({ challengeId, onBack, onStartWorkout }: ChallengeDetai
     <div className="space-y-6">
       {/* Challenge Cover Image */}
       <Card className="overflow-hidden">
-        <div className="h-48 bg-gradient-to-br from-primary/20 to-primary/5 relative">
-          <img 
-            src={getChallengeImage()} 
+        <div className="h-48 relative">
+          <ProgressiveImage
+            src={getChallengeImage()}
             alt={challenge.name}
             className="absolute inset-0 w-full h-full object-cover"
-            loading="eager"
-            onError={(e) => {
-              console.error('Failed to load challenge image:', getChallengeImage());
-              // Hide broken image, show gradient background instead
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
+            placeholderClassName="bg-gradient-to-br from-primary/20 to-primary/5"
+            priority={true}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-4 left-4 right-4">
+          <div className="absolute bottom-4 left-4 right-4 z-10">
             <div className="flex items-center gap-3">
               <div className="text-5xl">{challenge.badge.icon}</div>
               <div>

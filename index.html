@@ -27,6 +27,16 @@
   <link rel="apple-touch-icon" href="/favicon.ico" />
   <link rel="manifest" href="/manifest.json" />
 
+  <!-- Preload critical images for instant display -->
+  <link rel="preload" as="image" href="/challenges/pushup-power.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="/challenges/pullup-progression.jpg" fetchpriority="high">
+  <link rel="preload" as="image" href="/challenges/core-crusher.avif" fetchpriority="high">
+  
+  <!-- Preload critical GIFs -->
+  <link rel="preload" as="image" href="/pushup.gif">
+  <link rel="preload" as="image" href="/pullup.gif">
+  <link rel="preload" as="image" href="/situp.gif">
+
   <!-- MediaPipe Dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
