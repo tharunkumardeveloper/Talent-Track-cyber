@@ -267,10 +267,18 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
       await initMediaPipe();
       
       setIsLoading(false);
-      toast.success('Camera ready!');
+      toast.success('Camera ready', {
+        duration: 2000,
+        style: {
+          maxWidth: '200px',
+        }
+      });
     } catch (error) {
       console.error('Camera error:', error);
-      toast.error('Failed to access camera. Please allow camera permissions.');
+      toast.error('Camera access denied', {
+        duration: 3000,
+        style: { maxWidth: '250px' }
+      });
       setIsLoading(false);
     }
   };
@@ -290,7 +298,10 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
 
   const switchCamera = async () => {
     if (stage === 'recording') {
-      toast.error('Cannot switch camera while recording');
+      toast.error('Stop recording first', {
+        duration: 2000,
+        style: { maxWidth: '200px' }
+      });
       return;
     }
 
@@ -325,10 +336,16 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
       }
 
       setIsLoading(false);
-      toast.success(`Switched to ${newFacingMode === 'user' ? 'front' : 'back'} camera`);
+      toast.success(`${newFacingMode === 'user' ? 'Front' : 'Back'} camera`, {
+        duration: 2000,
+        style: { maxWidth: '180px' }
+      });
     } catch (error) {
       console.error('Camera switch error:', error);
-      toast.error('Failed to switch camera');
+      toast.error('Switch failed', {
+        duration: 2000,
+        style: { maxWidth: '180px' }
+      });
       setIsLoading(false);
     }
   };
@@ -336,7 +353,10 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
   const startRecording = async () => {
     try {
       if (!videoRef.current || !canvasRef.current || !streamRef.current) {
-        toast.error('Camera not ready. Please wait...');
+        toast.error('Camera not ready', {
+          duration: 2000,
+          style: { maxWidth: '180px' }
+        });
         console.error('Missing refs:', {
           video: !!videoRef.current,
           canvas: !!canvasRef.current,
@@ -392,10 +412,16 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
       // Start rendering with MediaPipe
       renderWithMediaPipe();
       
-      toast.success('Recording started!');
+      toast.success('Recording started', {
+        duration: 2000,
+        style: { maxWidth: '180px' }
+      });
     } catch (error) {
       console.error('Error starting recording:', error);
-      toast.error('Failed to start recording: ' + (error as Error).message);
+      toast.error('Recording failed', {
+        duration: 3000,
+        style: { maxWidth: '180px' }
+      });
     }
   };
 
@@ -419,7 +445,10 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
     // Ensure MediaPipe is initialized
     if (!mediapipeProcessor.pose) {
       console.error('MediaPipe pose not initialized');
-      toast.error('Pose detection not ready. Please try again.');
+      toast.error('Pose detection not ready', {
+        duration: 2000,
+        style: { maxWidth: '200px' }
+      });
       return;
     }
     
@@ -649,7 +678,10 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     }
-    toast.success('Recording stopped!');
+    toast.success('Recording stopped', {
+      duration: 2000,
+      style: { maxWidth: '180px' }
+    });
   };
 
   const useRecording = () => {
@@ -945,18 +977,18 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
 
       {/* Workout Demonstration Dialog */}
       <Dialog open={showDemoDialog} onOpenChange={setShowDemoDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
-              <Video className="w-6 h-6 text-primary" />
+        <DialogContent className="max-w-lg max-h-[85vh] p-4 sm:p-6">
+          <DialogHeader className="pb-3">
+            <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <Video className="w-5 h-5 text-primary" />
               How to Perform {activityName}
             </DialogTitle>
-            <DialogDescription>
-              Watch the demonstration and follow the instructions for best results
+            <DialogDescription className="text-xs sm:text-sm">
+              Watch the demo and follow the tips
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-3 overflow-y-auto max-h-[calc(85vh-140px)]">
             {/* GIF Demonstration */}
             <div className="relative aspect-video rounded-lg overflow-hidden">
               <ProgressiveImage
@@ -966,62 +998,62 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
                 placeholderClassName="bg-gradient-to-br from-primary/20 to-primary/5"
                 priority={true}
               />
-              <Badge className="absolute top-4 right-4 bg-primary z-10">
+              <Badge className="absolute top-2 right-2 bg-primary z-10 text-xs">
                 Demo
               </Badge>
             </div>
 
-            {/* Instructions */}
+            {/* Instructions - Compact */}
             <div>
-              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                Step-by-Step Instructions
+              <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                Instructions
               </h3>
-              <ol className="space-y-2">
+              <ol className="space-y-1.5">
                 {demo.instructions.map((instruction, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <Badge variant="outline" className="mt-0.5 shrink-0">
+                  <li key={index} className="flex items-start gap-2 text-xs">
+                    <Badge variant="outline" className="mt-0.5 shrink-0 h-5 w-5 flex items-center justify-center p-0 text-xs">
                       {index + 1}
                     </Badge>
-                    <span className="text-sm">{instruction}</span>
+                    <span>{instruction}</span>
                   </li>
                 ))}
               </ol>
             </div>
 
-            {/* Key Points for Recording */}
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                <Info className="w-5 h-5 text-primary" />
+            {/* Key Points - Compact */}
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                <Info className="w-4 h-4 text-primary" />
                 Recording Tips
               </h3>
-              <ul className="space-y-2">
+              <ul className="space-y-1.5">
                 {demo.keyPoints.map((point, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 shrink-0" />
+                  <li key={index} className="flex items-start gap-2 text-xs">
+                    <div className="w-1 h-1 bg-primary rounded-full mt-1.5 shrink-0" />
                     <span>{point}</span>
                   </li>
                 ))}
               </ul>
             </div>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => setShowDemoDialog(false)} 
-                className="flex-1"
-                size="lg"
-              >
-                Got It, Start Recording
-              </Button>
-              <Button 
-                onClick={() => setShowDemoDialog(false)} 
-                variant="outline"
-                size="lg"
-              >
-                Close
-              </Button>
-            </div>
+          {/* Action Buttons - Fixed at bottom */}
+          <div className="flex gap-2 pt-3 border-t">
+            <Button 
+              onClick={() => setShowDemoDialog(false)} 
+              className="flex-1"
+              size="sm"
+            >
+              Got It
+            </Button>
+            <Button 
+              onClick={() => setShowDemoDialog(false)} 
+              variant="outline"
+              size="sm"
+            >
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
