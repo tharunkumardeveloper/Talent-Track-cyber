@@ -225,6 +225,16 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
         return;
       }
 
+      // Check if device is in landscape orientation
+      const isLandscape = window.innerWidth > window.innerHeight;
+      if (!isLandscape) {
+        toast.error('Please rotate your device to landscape mode', { 
+          duration: 4000,
+          description: 'Turn your phone sideways for best recording quality'
+        });
+        return;
+      }
+
       isRecordingRef.current = true;
       setStage('recording');
       setRecordingTime(0);
@@ -235,8 +245,19 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
       const canvas = canvasRef.current;
       const video = videoRef.current;
 
-      canvas.width = video.videoWidth || 1920;
-      canvas.height = video.videoHeight || 1080;
+      // Force landscape dimensions
+      const videoWidth = video.videoWidth || 1920;
+      const videoHeight = video.videoHeight || 1080;
+      
+      // Ensure canvas is always landscape (width > height)
+      if (videoWidth > videoHeight) {
+        canvas.width = videoWidth;
+        canvas.height = videoHeight;
+      } else {
+        // If video is portrait, swap dimensions to force landscape
+        canvas.width = videoHeight;
+        canvas.height = videoWidth;
+      }
 
       const ctx = canvas.getContext('2d');
       if (ctx) {
@@ -340,7 +361,34 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
 
       try {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Draw video to fill canvas completely (no black bars)
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        
+        // Calculate scaling to cover entire canvas
+        const videoAspect = videoWidth / videoHeight;
+        const canvasAspect = canvasWidth / canvasHeight;
+        
+        let drawWidth, drawHeight, offsetX, offsetY;
+        
+        if (videoAspect > canvasAspect) {
+          // Video is wider - fit to height
+          drawHeight = canvasHeight;
+          drawWidth = videoWidth * (canvasHeight / videoHeight);
+          offsetX = (canvasWidth - drawWidth) / 2;
+          offsetY = 0;
+        } else {
+          // Video is taller - fit to width
+          drawWidth = canvasWidth;
+          drawHeight = videoHeight * (canvasWidth / videoWidth);
+          offsetX = 0;
+          offsetY = (canvasHeight - drawHeight) / 2;
+        }
+        
+        ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
 
         if (lastLandmarksRef.current) {
           const mp = window as any;
@@ -524,6 +572,7 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
             playsInline
             autoPlay
             loop
+            style={{ objectFit: 'cover' }}
           />
         )}
 
@@ -618,12 +667,12 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
                   </h3>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span>Position your full body in frame</span>
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                      <span className="font-bold text-yellow-400">📱 ROTATE TO LANDSCAPE MODE (Turn phone sideways)</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span>Rotate to landscape for best results</span>
+                      <span>Position your full body in frame</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-green-400 rounded-full"></div>
