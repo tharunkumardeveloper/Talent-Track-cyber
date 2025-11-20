@@ -64,7 +64,7 @@ const WORKOUT_DEMOS: { [key: string]: {
   keyPoints: string[];
 }} = {
   'Push-ups': {
-    gifUrl: '/gifs tt/pushup.gif',
+    gifUrl: '/pushup.gif',
     instructions: [
       'Start in plank position with hands shoulder-width apart',
       'Lower your body until chest nearly touches the ground',
@@ -79,7 +79,7 @@ const WORKOUT_DEMOS: { [key: string]: {
     ]
   },
   'Pull-ups': {
-    gifUrl: '/gifs tt/pullup.gif',
+    gifUrl: '/pullup.gif',
     instructions: [
       'Hang from bar with arms fully extended',
       'Pull yourself up until chin is over the bar',
@@ -94,7 +94,7 @@ const WORKOUT_DEMOS: { [key: string]: {
     ]
   },
   'Sit-ups': {
-    gifUrl: '/gifs tt/situp.gif',
+    gifUrl: '/situp.gif',
     instructions: [
       'Lie on your back with knees bent',
       'Place hands behind head or across chest',
@@ -109,7 +109,7 @@ const WORKOUT_DEMOS: { [key: string]: {
     ]
   },
   'Vertical Jump': {
-    gifUrl: '/gifs tt/verticaljump.gif',
+    gifUrl: '/verticaljump.gif',
     instructions: [
       'Stand with feet shoulder-width apart',
       'Bend knees and swing arms back',
@@ -124,7 +124,7 @@ const WORKOUT_DEMOS: { [key: string]: {
     ]
   },
   'Shuttle Run': {
-    gifUrl: '/gifs tt/shuttlerun.gif',
+    gifUrl: '/shuttlerun.gif',
     instructions: [
       'Sprint to the line as fast as possible',
       'Touch the line with your hand',
@@ -139,7 +139,7 @@ const WORKOUT_DEMOS: { [key: string]: {
     ]
   },
   'Sit Reach': {
-    gifUrl: '/gifs tt/sit&reach.gif',
+    gifUrl: '/sit&reach.gif',
     instructions: [
       'Sit with legs extended straight',
       'Reach forward as far as possible',
@@ -154,7 +154,7 @@ const WORKOUT_DEMOS: { [key: string]: {
     ]
   },
   'Standing Broad Jump': {
-    gifUrl: '/gifs tt/verticaljump.gif',
+    gifUrl: '/verticaljump.gif',
     instructions: [
       'Stand with feet shoulder-width apart',
       'Swing arms back and bend knees',
@@ -169,7 +169,7 @@ const WORKOUT_DEMOS: { [key: string]: {
     ]
   },
   'Knee Push-ups': {
-    gifUrl: '/gifs tt/kneepushup.gif',
+    gifUrl: '/kneepushup.gif',
     instructions: [
       'Start in plank position with knees on the ground',
       'Lower your body until chest nearly touches the ground',
@@ -207,8 +207,6 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
   const [incorrectCount, setIncorrectCount] = useState(0);
   const [poseDetector, setPoseDetector] = useState<any>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
-  const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
-  const [showOrientationPrompt, setShowOrientationPrompt] = useState(false);
   const [showDemoDialog, setShowDemoDialog] = useState(true); // Show on mount
 
   const tips = WORKOUT_TIPS[activityName] || WORKOUT_TIPS['Push-ups'];
@@ -220,32 +218,7 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
     return () => cleanup();
   }, []);
 
-  // Monitor orientation changes
-  useEffect(() => {
-    const handleOrientationChange = () => {
-      const landscape = window.innerWidth > window.innerHeight;
-      setIsLandscape(landscape);
-      
-      // Show prompt if in portrait mode during recording
-      if (!landscape && stage === 'recording') {
-        setShowOrientationPrompt(true);
-        toast.warning('Please rotate to horizontal mode for better recording');
-      } else {
-        setShowOrientationPrompt(false);
-      }
-    };
 
-    window.addEventListener('resize', handleOrientationChange);
-    window.addEventListener('orientationchange', handleOrientationChange);
-    
-    // Check initial orientation
-    handleOrientationChange();
-
-    return () => {
-      window.removeEventListener('resize', handleOrientationChange);
-      window.removeEventListener('orientationchange', handleOrientationChange);
-    };
-  }, [stage]);
 
   // Cycle tips during recording
   useEffect(() => {
@@ -361,12 +334,6 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
 
   const startRecording = async () => {
     try {
-      // Check orientation before starting
-      if (!isLandscape) {
-        toast.error('Please rotate to horizontal mode before recording');
-        return;
-      }
-
       if (!videoRef.current || !canvasRef.current || !streamRef.current) {
         toast.error('Camera not ready. Please wait...');
         console.error('Missing refs:', {
@@ -855,23 +822,7 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
               </Badge>
             </div>
 
-            {/* Orientation Prompt Overlay */}
-            {!isLandscape && stage !== 'review' && (
-              <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
-                <div className="text-center p-6 max-w-sm">
-                  <div className="text-6xl mb-4 animate-bounce">📱➡️📱</div>
-                  <h3 className="text-2xl font-bold text-white mb-2">
-                    Rotate to Horizontal
-                  </h3>
-                  <p className="text-white/80 mb-4">
-                    Please rotate your device to landscape mode for the best recording experience
-                  </p>
-                  <Badge className="bg-yellow-500 text-black px-4 py-2">
-                    Horizontal Mode Required
-                  </Badge>
-                </div>
-              </div>
-            )}
+
           </div>
         </Card>
 
@@ -894,7 +845,11 @@ const LiveRecorder = ({ activityName, onBack, onComplete }: LiveRecorderProps) =
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">Keep device steady</span>
+                  <span className="text-sm">Keep device steady (use a stand if possible)</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm">Video will be recorded in landscape format</span>
                 </div>
               </div>
             </CardContent>

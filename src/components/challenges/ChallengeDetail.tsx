@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Trophy, Target, CheckCircle, Star, ArrowRight } from 'lucide-react';
 
-// Challenge cover images from root challenges folder
+// Challenge cover images from public/challenges folder
 const pushupPowerImage = '/challenges/pushup-power.webp';
 const pullupProgressionImage = '/challenges/pullup-progression.jpg';
 const coreCrusherImage = '/challenges/core-crusher.avif';
 const sprintMasterImage = '/challenges/sprint-master.jpg';
-const flexibilityFoundationImage = '/challenges/flexibility foundation.webp';
-const jumpPowerImage = '/challenges/jump power.jpg';
-const adaptiveStrengthImage = '/challenges/adaptive strength.jpg';
+const flexibilityFoundationImage = '/challenges/flexibility-foundation.webp';
+const jumpPowerImage = '/challenges/jump-power.jpg';
+const adaptiveStrengthImage = '/challenges/adaptive-strength.jpg';
 
 interface Workout {
   name: string;
@@ -233,10 +233,18 @@ const ChallengeDetail = ({ challengeId, onBack, onStartWorkout }: ChallengeDetai
     <div className="space-y-6">
       {/* Challenge Cover Image */}
       <Card className="overflow-hidden">
-        <div 
-          className="h-48 bg-cover bg-center relative"
-          style={{ backgroundImage: `url(${getChallengeImage()})` }}
-        >
+        <div className="h-48 bg-gradient-to-br from-primary/20 to-primary/5 relative">
+          <img 
+            src={getChallengeImage()} 
+            alt={challenge.name}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="eager"
+            onError={(e) => {
+              console.error('Failed to load challenge image:', getChallengeImage());
+              // Hide broken image, show gradient background instead
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-4 left-4 right-4">
             <div className="flex items-center gap-3">

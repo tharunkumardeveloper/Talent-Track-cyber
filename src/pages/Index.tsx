@@ -19,6 +19,7 @@ import WorkoutInterface from '@/components/workout/WorkoutInterface';
 import ProfilePage from '@/components/profile/ProfilePage';
 import SettingsPage from '@/components/settings/SettingsPage';
 import BadgesScreen from '@/components/badges/BadgesScreen';
+import { preloadAllAssets } from '@/utils/imagePreloader';
 
 type AppState = 'loading' | 'auth' | 'setup' | 'home' | 'profile' | 'settings' | 'badges' | 'challenges' | 'challenge-detail';
 type UserRole = 'athlete' | 'coach' | 'admin';
@@ -35,7 +36,7 @@ const Index = () => {
   const [userSetupData, setUserSetupData] = useState<any>(null);
   const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null);
 
-  // Simulate checking for returning user
+  // Simulate checking for returning user and preload assets
   useEffect(() => {
     const isReturningUser = localStorage.getItem('talenttrack_user');
     if (isReturningUser) {
@@ -44,6 +45,11 @@ const Index = () => {
       setUserName(userData.name);
       setIsFirstTime(false);
     }
+    
+    // Preload images and GIFs in the background
+    preloadAllAssets().catch(err => {
+      console.warn('Failed to preload some assets:', err);
+    });
   }, []);
 
   const handleLoadingComplete = () => {
