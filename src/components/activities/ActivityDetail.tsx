@@ -359,7 +359,7 @@ const previewGifs: { [key: string]: string } = {
   'Modified Shuttle Run': '/shuttlerun.gif',
   'Sit Reach': '/sit&reach.gif',
   'Inclined Push-up': '/pushup.gif',
-  'Knee Push-up': '/kneepushup.gif',
+  'Knee Push-ups': '/kneepushup.gif',
   'Wide Arm Push-up': '/pushup.gif'
 };
 
@@ -400,16 +400,26 @@ const ActivityDetail = ({ activity, onBack, onStartWorkout }: ActivityDetailProp
       </div>
 
       {/* Cover Image */}
-      <div className="aspect-video bg-gradient-to-r from-gray-300 to-gray-400 relative">
-        {activity.image ? (
+      <div className="aspect-video bg-black relative">
+        {previewGif ? (
+          <img 
+            src={previewGif} 
+            alt={activity.name}
+            className="w-full h-full object-contain"
+            onError={(e) => {
+              // Fallback if GIF fails to load
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : activity.image ? (
           <img 
             src={activity.image} 
             alt={activity.name}
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-6xl">
-            💪
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+            <div className="text-6xl">💪</div>
           </div>
         )}
       </div>
