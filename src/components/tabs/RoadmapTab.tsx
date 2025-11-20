@@ -66,13 +66,11 @@ const RoadmapTab = ({ onViewAllBadges }: RoadmapTabProps) => {
     }
   ];
 
-  // User's current badges (5-badge showcase) - recent + upcoming
+  // User's last 3 badges
   const userBadges = [
-    { id: 1, name: 'Strength Starter', icon: '💪', earned: true, current: false, category: 'Strength' },
-    { id: 2, name: 'Endurance Sprinter', icon: '🏃', earned: true, current: false, category: 'Endurance' },
-    { id: 3, name: 'Flexibility Master', icon: '🤸', earned: true, current: true, category: 'Flexibility' }, // Current badge with glow
-    { id: 4, name: 'Calisthenics Challenger', icon: '🔥', earned: false, current: false, progress: 65, category: 'Calisthenics' },
-    { id: 5, name: 'Para Warrior', icon: '♿', earned: false, current: false, progress: 20, category: 'Para-Athlete' }
+    { id: 1, name: 'Strength Starter', icon: '💪', earned: true, category: 'Strength' },
+    { id: 2, name: 'Endurance Sprinter', icon: '🏃', earned: true, category: 'Endurance' },
+    { id: 3, name: 'Flexibility Master', icon: '🤸', earned: true, category: 'Flexibility' }
   ];
 
   const goals = [
@@ -140,38 +138,23 @@ const RoadmapTab = ({ onViewAllBadges }: RoadmapTabProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex overflow-x-auto gap-3 mb-4 pb-2">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             {userBadges.map((badge) => (
-              <div key={badge.id} className="text-center flex-shrink-0 min-w-[80px]">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl border-2 transition-all duration-300 ${
-                  badge.current 
-                    ? 'border-primary bg-primary/20 ring-4 ring-primary/30 shadow-xl shadow-primary/40 animate-pulse' 
-                    : badge.earned 
-                    ? 'border-success bg-success/20' 
-                    : 'border-muted bg-muted/50'
-                }`}>
-                  {badge.earned || badge.current ? badge.icon : '🔒'}
+              <div key={badge.id} className="text-center">
+                <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-2xl border-2 border-success bg-success/20">
+                  {badge.icon}
                 </div>
                 <div className="mt-2">
-                  <p className={`text-xs font-medium ${badge.current ? 'text-primary font-bold' : badge.earned ? 'text-success' : 'text-muted-foreground'}`}>
+                  <p className="text-xs font-medium text-success line-clamp-2">
                     {badge.name}
                   </p>
-                  {badge.current && (
-                    <p className="text-xs text-primary/80 font-medium mt-1">Current</p>
-                  )}
-                  {!badge.earned && badge.progress && (
-                    <div className="mt-1">
-                      <Progress value={badge.progress} className="h-1 w-12 mx-auto" />
-                      <p className="text-xs text-muted-foreground mt-1">{badge.progress}%</p>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
           </div>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-success">3</span> earned • <span className="font-medium text-primary">2</span> in progress
+            <p className="text-sm text-muted-foreground mb-3">
+              Last 3 badges earned
             </p>
           </div>
         </CardContent>

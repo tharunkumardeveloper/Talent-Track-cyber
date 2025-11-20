@@ -159,6 +159,11 @@ const Index = () => {
     setAppState('home');
   };
 
+  const handleTabChange = (tab: string) => {
+    scrollToTop();
+    setActiveTab(tab);
+  };
+
   const handleChallengeRedirect = (challengeId: string) => {
     scrollToTop();
     // Navigate to specific challenge detail page
@@ -193,7 +198,7 @@ const Index = () => {
           <HomeScreen
             userRole={userRole}
             userName={userName}
-            onTabChange={setActiveTab}
+            onTabChange={handleTabChange}
             activeTab={activeTab}
             onProfileOpen={handleProfileOpen}
             onSettingsOpen={handleSettingsOpen}
@@ -283,7 +288,7 @@ const Index = () => {
             <HomeScreen
               userRole={userRole}
               userName={userName}
-              onTabChange={setActiveTab}
+              onTabChange={handleTabChange}
               activeTab={activeTab}
               onProfileOpen={handleProfileOpen}
               onSettingsOpen={handleSettingsOpen}
@@ -293,7 +298,7 @@ const Index = () => {
           ) : userRole === 'coach' ? (
             <CoachDashboard
               userName={userName}
-              onTabChange={setActiveTab}
+              onTabChange={handleTabChange}
               activeTab={activeTab}
               onProfileOpen={handleProfileOpen}
               onSettingsOpen={handleSettingsOpen}

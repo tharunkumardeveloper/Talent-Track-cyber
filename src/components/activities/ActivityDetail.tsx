@@ -349,18 +349,18 @@ const activityContent = {
   }
 };
 
-// Preview image mapping - using static images for better performance
+// Preview image mapping - using workout GIFs as cover images
 const previewImages: { [key: string]: string } = {
-  'Push-ups': '/challenges/pushup-power.webp',
-  'Pull-ups': '/challenges/pullup-progression.jpg',
-  'Sit-ups': '/challenges/core-crusher.avif',
-  'Vertical Jump': '/challenges/jump-power.jpg',
-  'Shuttle Run': '/challenges/sprint-master.jpg',
-  'Modified Shuttle Run': '/challenges/sprint-master.jpg',
-  'Sit Reach': '/challenges/flexibility-foundation.webp',
-  'Inclined Push-up': '/challenges/pushup-power.webp',
-  'Knee Push-ups': '/challenges/adaptive-strength.jpg',
-  'Wide Arm Push-up': '/challenges/pushup-power.webp'
+  'Push-ups': '/pushup.gif',
+  'Pull-ups': '/pullup.gif',
+  'Sit-ups': '/situp.gif',
+  'Vertical Jump': '/verticaljump.gif',
+  'Shuttle Run': '/shuttlerun.gif',
+  'Modified Shuttle Run': '/shuttlerun.gif',
+  'Sit Reach': '/sit&reach.gif',
+  'Inclined Push-up': '/pushup.gif',
+  'Knee Push-ups': '/kneepushup.gif',
+  'Wide Arm Push-up': '/pushup.gif'
 };
 
 // GIF mapping for demonstration section
@@ -416,22 +416,31 @@ const ActivityDetail = ({ activity, onBack, onStartWorkout }: ActivityDetailProp
 
       {/* Cover Image */}
       <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 relative">
-        {previewImage ? (
+        {activity.image ? (
+          <img 
+            src={activity.image} 
+            alt={activity.name}
+            className="w-full h-full object-cover"
+            loading="eager"
+            onError={(e) => {
+              // Fallback to GIF if thumbnail fails to load
+              const img = e.target as HTMLImageElement;
+              if (previewImage) {
+                img.src = previewImage;
+              } else {
+                img.style.display = 'none';
+              }
+            }}
+          />
+        ) : previewImage ? (
           <img 
             src={previewImage} 
             alt={activity.name}
             className="w-full h-full object-cover"
             loading="eager"
             onError={(e) => {
-              // Fallback if image fails to load
               (e.target as HTMLImageElement).style.display = 'none';
             }}
-          />
-        ) : activity.image ? (
-          <img 
-            src={activity.image} 
-            alt={activity.name}
-            className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

@@ -14,6 +14,9 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
   const recentWorkouts = getRecentWorkouts(2); // Get last 2 workouts
   const storageInfo = getStorageInfo();
   
+  // Get current day
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+  
   const weeklyStats = [
     { day: 'Mon', value: 85 },
     { day: 'Tue', value: 92 },
@@ -123,19 +126,11 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
                         <p className="text-xs text-muted-foreground">
                           {formatDate(workout.timestamp)}
                         </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge 
-                            className={`text-xs ${workout.posture === 'Good' ? 'bg-success/10 text-success border-success' : 'bg-warning/10 text-warning border-warning'}`}
-                            variant="outline"
-                          >
-                            {workout.posture}
-                          </Badge>
-                        </div>
                       </div>
                     </div>
                     
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="grid grid-cols-4 gap-3 text-center">
                       <div>
                         <div className="text-sm font-medium">{workout.setsCompleted}</div>
                         <div className="text-xs text-muted-foreground">Sets</div>
@@ -147,6 +142,14 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
                       <div>
                         <div className="text-sm font-medium">{workout.duration}</div>
                         <div className="text-xs text-muted-foreground">Duration</div>
+                      </div>
+                      <div>
+                        <Badge 
+                          className={`text-xs ${workout.posture === 'Good' ? 'bg-success/10 text-success border-success' : 'bg-warning/10 text-warning border-warning'}`}
+                          variant="outline"
+                        >
+                          {workout.posture}
+                        </Badge>
                       </div>
                     </div>
                   </CardContent>
@@ -241,18 +244,26 @@ const ReportTab = ({ userSetupData }: ReportTabProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {weeklyStats.map((stat) => (
-              <div key={stat.day} className="flex items-center space-x-3">
-                <span className="text-sm font-medium w-8">{stat.day}</span>
-                <div className="flex-1 bg-secondary rounded-full h-3 overflow-hidden">
-                  <div 
-                    className="bg-primary h-full rounded-full transition-all duration-500"
-                    style={{ width: `${stat.value}%` }}
-                  />
+            {weeklyStats.map((stat) => {
+              const isToday = stat.day === today;
+              return (
+                <div key={stat.day} className="flex items-center space-x-3">
+                  <span className={`text-sm font-medium w-8 ${isToday ? 'text-primary font-bold' : ''}`}>
+                    {stat.day}
+                    {isToday && <span className="ml-1 text-xs">•</span>}
+                  </span>
+                  <div className="flex-1 bg-secondary rounded-full h-3 overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-500 ${isToday ? 'bg-primary ring-2 ring-primary/30' : 'bg-primary'}`}
+                      style={{ width: `${stat.value}%` }}
+                    />
+                  </div>
+                  <span className={`text-sm w-8 ${isToday ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                    {stat.value}%
+                  </span>
                 </div>
-                <span className="text-sm text-muted-foreground w-8">{stat.value}%</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="mt-4 pt-4 border-t">
             <div className="flex justify-between text-sm">

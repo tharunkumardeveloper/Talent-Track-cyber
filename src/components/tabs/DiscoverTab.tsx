@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, Users, Clock, Star, Trophy, ArrowRight, CheckCircle } from 'lucide-react';
-import { FEATURED_CHALLENGES, getChallengeProgress, getCategoryColor, getDifficultyColor, type Challenge } from '@/utils/challengeSystem';
+import { TrendingUp, Users, Star, Trophy, ArrowRight, CheckCircle } from 'lucide-react';
+import { FEATURED_CHALLENGES, getChallengeProgress, type Challenge } from '@/utils/challengeSystem';
 import ChallengeDetailModal from '@/components/challenges/ChallengeDetailModal';
 
 interface DiscoverTabProps {
@@ -12,21 +11,7 @@ interface DiscoverTabProps {
 }
 
 const DiscoverTab = ({ onStartWorkout }: DiscoverTabProps) => {
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
-
-  const filterCategories = [
-    { id: 'all', name: 'All', icon: '🏆' },
-    { id: 'strength', name: 'Strength', icon: '💪' },
-    { id: 'endurance', name: 'Endurance', icon: '⚡' },
-    { id: 'flexibility', name: 'Flexibility', icon: '🤸' },
-    { id: 'calisthenics', name: 'Calisthenics', icon: '🤸‍♂️' },
-    { id: 'para-athlete', name: 'Para-Athlete', icon: '♿' }
-  ];
-
-  const filteredChallenges = selectedFilter && selectedFilter !== 'all'
-    ? FEATURED_CHALLENGES.filter(c => c.category === selectedFilter)
-    : FEATURED_CHALLENGES;
 
   return (
     <div className="space-y-6">
@@ -36,25 +21,9 @@ const DiscoverTab = ({ onStartWorkout }: DiscoverTabProps) => {
         <p className="text-muted-foreground">Join featured challenges and earn exclusive badges</p>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {filterCategories.map((category) => (
-          <Button
-            key={category.id}
-            variant={selectedFilter === category.id ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedFilter(category.id === selectedFilter ? null : category.id)}
-            className="shrink-0"
-          >
-            <span className="mr-1">{category.icon}</span>
-            {category.name}
-          </Button>
-        ))}
-      </div>
-
       {/* Featured Challenges */}
       <div className="space-y-4">
-        {filteredChallenges.map((challenge) => {
+        {FEATURED_CHALLENGES.map((challenge) => {
           const progress = getChallengeProgress(challenge.id);
 
           return (
@@ -84,20 +53,6 @@ const DiscoverTab = ({ onStartWorkout }: DiscoverTabProps) => {
                       {progress.completed && (
                         <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
                       )}
-                    </div>
-
-                    {/* Badges */}
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      <Badge className={`${getCategoryColor(challenge.category)} text-white text-xs`}>
-                        {challenge.category}
-                      </Badge>
-                      <Badge className={`${getDifficultyColor(challenge.difficulty)} text-white text-xs`}>
-                        {challenge.difficulty}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {challenge.duration}
-                      </Badge>
                     </div>
 
                     {/* Stats */}
@@ -162,18 +117,7 @@ const DiscoverTab = ({ onStartWorkout }: DiscoverTabProps) => {
         })}
       </div>
 
-      {/* Empty State */}
-      {filteredChallenges.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-semibold mb-2">No challenges found</h3>
-            <p className="text-sm text-muted-foreground">
-              Try selecting a different category
-            </p>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Challenge Detail Modal */}
       {selectedChallenge && (

@@ -1,19 +1,28 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Trophy, Target, CheckCircle, Star, ArrowRight } from 'lucide-react';
-import ProgressiveImage from '@/components/ui/progressive-image';
+import { Trophy, Target, CheckCircle, Star, ArrowRight } from 'lucide-react';
 
-// Challenge cover images from public/challenges folder
-const pushupPowerImage = '/challenges/pushup-power.webp';
-const pullupProgressionImage = '/challenges/pullup-progression.jpg';
-const coreCrusherImage = '/challenges/core-crusher.avif';
-const sprintMasterImage = '/challenges/sprint-master.jpg';
-const flexibilityFoundationImage = '/challenges/flexibility-foundation.webp';
-const jumpPowerImage = '/challenges/jump-power.jpg';
-const adaptiveStrengthImage = '/challenges/adaptive-strength.jpg';
+// Challenge cover images
+const CHALLENGE_IMAGES: Record<string, string> = {
+  'push-up-power': '/challenges/pushup-power.webp',
+  'strength-pushup-master': '/challenges/pushup-power.webp',
+  'pull-up-progression': '/challenges/pullup-progression.jpg',
+  'strength-pullup-power': '/challenges/pullup-progression.jpg',
+  'core-crusher': '/challenges/core-crusher.avif',
+  'strength-core-crusher': '/challenges/core-crusher.avif',
+  'sprint-master': '/challenges/sprint-master.jpg',
+  'endurance-sprint-master': '/challenges/sprint-master.jpg',
+  'flexibility-foundation': '/challenges/flexibility-foundation.webp',
+  'jump-power': '/challenges/jump-power.jpg',
+  'endurance-jump-power': '/challenges/jump-power.jpg',
+  'adaptive-strength': '/challenges/adaptive-strength.jpg',
+  'para-adaptive-strength': '/challenges/adaptive-strength.jpg',
+  'calisthenics-bodyweight': '/challenges/pushup-power.webp',
+  'elite-century-club': '/challenges/pushup-power.webp',
+  'elite-perfect-form': '/challenges/pushup-power.webp',
+};
 
 interface Workout {
   name: string;
@@ -192,33 +201,7 @@ const ChallengeDetail = ({ challengeId, onBack, onStartWorkout }: ChallengeDetai
   }
 
   const getChallengeImage = () => {
-    switch (challengeId) {
-      case 'push-up-power':
-      case 'strength-pushup-master':
-        return pushupPowerImage;
-      case 'pull-up-progression':
-      case 'strength-pullup-power':
-        return pullupProgressionImage;
-      case 'core-crusher':
-      case 'strength-core-crusher':
-        return coreCrusherImage;
-      case 'sprint-master':
-      case 'endurance-sprint-master':
-        return sprintMasterImage;
-      case 'flexibility-foundation':
-        return flexibilityFoundationImage;
-      case 'jump-power':
-      case 'endurance-jump-power':
-        return jumpPowerImage;
-      case 'adaptive-strength':
-      case 'para-adaptive-strength':
-        return adaptiveStrengthImage;
-      case 'calisthenics-bodyweight':
-      case 'elite-century-club':
-      case 'elite-perfect-form':
-        return pushupPowerImage;
-      default: return pushupPowerImage;
-    }
+    return CHALLENGE_IMAGES[challengeId] || '/challenges/pushup-power.webp';
   };
 
   const calculateProgress = () => {
@@ -254,13 +237,16 @@ const ChallengeDetail = ({ challengeId, onBack, onStartWorkout }: ChallengeDetai
     <div className="space-y-6">
       {/* Challenge Cover Image */}
       <Card className="overflow-hidden">
-        <div className="h-48 relative">
-          <ProgressiveImage
+        <div className="h-48 relative bg-gradient-to-br from-primary/20 to-primary/5">
+          <img
             src={getChallengeImage()}
             alt={challenge.name}
             className="absolute inset-0 w-full h-full object-cover"
-            placeholderClassName="bg-gradient-to-br from-primary/20 to-primary/5"
-            priority={true}
+            loading="eager"
+            onError={(e) => {
+              // Hide image on error, show gradient background instead
+              e.currentTarget.style.display = 'none';
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-4 left-4 right-4 z-10">

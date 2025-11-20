@@ -241,18 +241,36 @@ const HomeScreen = ({ userRole, userName, onTabChange, activeTab, onProfileOpen,
           </CardHeader>
           <CardContent>
             <div className="flex justify-between mb-3">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => (
-                <div
-                  key={day}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                    index < 5
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-muted-foreground'
-                  }`}
-                >
-                  {day}
-                </div>
-              ))}
+              {['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'].map((day, index) => {
+                // Get current day (0 = Sunday, 1 = Monday, etc.)
+                const today = new Date().getDay();
+                // Convert to Monday-first (0 = Monday, 6 = Sunday)
+                const currentDayIndex = today === 0 ? 6 : today - 1;
+                const isToday = index === currentDayIndex;
+                
+                return (
+                  <div
+                    key={`${day}-${index}`}
+                    className="relative"
+                  >
+                    {isToday && (
+                      <>
+                        <div className="absolute inset-0 rounded-full bg-primary/20 animate-[ping_2s_ease-in-out_infinite]" />
+                        <div className="absolute inset-0 rounded-full bg-primary/30 animate-[ping_2s_ease-in-out_infinite_0.5s]" />
+                      </>
+                    )}
+                    <div
+                      className={`relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                        isToday
+                          ? 'bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground scale-110 shadow-lg shadow-primary/50'
+                          : 'bg-secondary text-muted-foreground'
+                      }`}
+                    >
+                      {day}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">5/7 days this week</span>
