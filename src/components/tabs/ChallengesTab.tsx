@@ -11,6 +11,7 @@ interface Challenge {
   description: string;
   category: 'Strength' | 'Endurance' | 'Flexibility' | 'Calisthenics' | 'Para-Athlete';
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  image?: string;
   workouts: {
     name: string;
     targetReps: number;
@@ -42,6 +43,7 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
       description: 'Master the fundamental push-up with perfect form',
       category: 'Strength',
       difficulty: 'Beginner',
+      image: '/challenges/pushup-power.webp',
       workouts: [
         { name: 'Push-ups', targetReps: 10, completed: false, currentReps: 0 },
         { name: 'Push-ups', targetReps: 15, completed: false, currentReps: 0 },
@@ -64,6 +66,7 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
       description: 'Build upper body strength with pull-ups',
       category: 'Strength',
       difficulty: 'Intermediate',
+      image: '/challenges/pullup-progression.jpg',
       workouts: [
         { name: 'Pull-ups', targetReps: 5, completed: false, currentReps: 0 },
         { name: 'Pull-ups', targetReps: 8, completed: false, currentReps: 0 },
@@ -86,6 +89,7 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
       description: 'Strengthen your core with sit-ups',
       category: 'Strength',
       difficulty: 'Beginner',
+      image: '/challenges/core-crusher.avif',
       workouts: [
         { name: 'Sit-ups', targetReps: 15, completed: false, currentReps: 0 },
         { name: 'Sit-ups', targetReps: 20, completed: false, currentReps: 0 },
@@ -108,6 +112,7 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
       id: 'endurance-1',
       name: 'Sprint Master',
       description: 'Improve your speed and agility',
+      image: '/challenges/sprint-master.jpg',
       category: 'Endurance',
       difficulty: 'Intermediate',
       workouts: [
@@ -132,6 +137,7 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
       id: 'flexibility-1',
       name: 'Flexibility Foundation',
       description: 'Improve your flexibility and range of motion',
+      image: '/challenges/flexibility-foundation.webp',
       category: 'Flexibility',
       difficulty: 'Beginner',
       workouts: [
@@ -156,6 +162,7 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
       id: 'calisthenics-1',
       name: 'Jump Power',
       description: 'Develop explosive power with vertical jumps',
+      image: '/challenges/jump-power.jpg',
       category: 'Calisthenics',
       difficulty: 'Intermediate',
       workouts: [
@@ -180,6 +187,7 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
       id: 'para-1',
       name: 'Adaptive Strength',
       description: 'Build strength with modified exercises',
+      image: '/challenges/adaptive-strength.jpg',
       category: 'Para-Athlete',
       difficulty: 'Beginner',
       workouts: [
@@ -270,7 +278,20 @@ const ChallengesTab = ({ onStartWorkout }: ChallengesTabProps) => {
           const totalWorkouts = challenge.workouts.length;
 
           return (
-            <Card key={challenge.id} className="card-elevated">
+            <Card key={challenge.id} className="card-elevated overflow-hidden">
+              {/* Challenge Cover Image */}
+              {challenge.image && (
+                <div className="h-32 relative">
+                  <img 
+                    src={challenge.image}
+                    alt={challenge.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                </div>
+              )}
+              
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
