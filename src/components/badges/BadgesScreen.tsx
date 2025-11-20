@@ -1,113 +1,50 @@
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge as BadgeUI } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Trophy, Star, Target, Zap, Award, Lock } from 'lucide-react';
+import { ArrowLeft, Trophy, Lock, Star } from 'lucide-react';
+import { BADGES, getRarityColor, getCategoryColor, checkBadgeUnlock, getBadgeProgress, type Badge } from '@/utils/badgeSystem';
+import { getUserStats, getUnlockedBadges } from '@/utils/workoutStorage';
 
 interface BadgesScreenProps {
   onBack: () => void;
 }
 
 const BadgesScreen = ({ onBack }: BadgesScreenProps) => {
-  // Generate 50 badges with activity-based categories
-  const badgeCategories = [
-    { name: 'Strength', icon: '💪', color: 'challenge-blue' },
-    { name: 'Endurance', icon: '🏃', color: 'challenge-purple' },
-    { name: 'Flexibility', icon: '🧘', color: 'challenge-light-blue' },
-    { name: 'Calisthenics', icon: '🤸', color: 'challenge-gray' },
-    { name: 'Para-Athlete', icon: '♿', color: 'challenge-maroon' }
+  const [userStats, setUserStats] = useState<any>({});
+  const [unlockedBadges, setUnlockedBadges] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Load user stats and unlocked badges
+    setUserStats(getUserStats());
+    setUnlockedBadges(getUnlockedBadges());
+  }, []);
+
+  const categories = [
+    { id: 'all', name: 'All', icon: '🏆' },
+    { id: 'strength', name: 'Strength', icon: '💪' },
+    { id: 'endurance', name: 'Endurance', icon: '⚡' },
+    { id: 'flexibility', name: 'Flexibility', icon: '🤸' },
+    { id: 'consistency', name: 'Consistency', icon: '🔥' },
+    { id: 'milestone', name: 'Milestone', icon: '⭐' },
+    { id: 'elite', name: 'Elite', icon: '👑' }
   ];
 
-  const strengthBadges = [
-    { name: '💪 Strength Starter', icon: '💪' }, 
-    { name: '🔨 Push-up Powerhouse', icon: '🔨' }, 
-    { name: '⚡ Pull-up Pro', icon: '⚡' }, 
-    { name: '🏋️ Medicine Ball Master', icon: '🏋️' }, 
-    { name: '🦾 Upper Body Beast', icon: '🦾' },
-    { name: '🔥 Core Crusher', icon: '🔥' }, 
-    { name: '⚔️ Total Power', icon: '⚔️' }, 
-    { name: '👑 Push-up King', icon: '👑' }, 
-    { name: '🎯 Resistance Ruler', icon: '🎯' }, 
-    { name: '🏆 Strength Elite', icon: '🏆' }
-  ];
+  const filteredBadges = selectedCategory && selectedCategory !== 'all'
+    ? BADGES.filter(b => b.category === selectedCategory)
+    : BADGES;
 
-  const enduranceBadges = [
-    { name: '🏃 Endurance Sprinter', icon: '🏃' }, 
-    { name: '🎽 800m Runner', icon: '🎽' }, 
-    { name: '💨 Shuttle Speedster', icon: '💨' }, 
-    { name: '🚶 Distance Walker', icon: '🚶' }, 
-    { name: '❤️ Cardio Champion', icon: '❤️' },
-    { name: '🏃‍♂️ Marathon Master', icon: '🏃‍♂️' }, 
-    { name: '⚡ Sprint Specialist', icon: '⚡' }, 
-    { name: '🔥 HIIT Hero', icon: '🔥' }, 
-    { name: '⚡ Stamina Soldier', icon: '⚡' }, 
-    { name: '🏆 Endurance Elite', icon: '🏆' }
-  ];
+  const unlockedCount = BADGES.filter(b => unlockedBadges.includes(b.id)).length;
+  const totalBadges = BADGES.length;
+  const completionPercentage = (unlockedCount / totalBadges) * 100;
 
-  const flexibilityBadges = [
-    { name: '🤸 Flexibility Master', icon: '🤸' }, 
-    { name: '📐 Sit-and-Reach Star', icon: '📐' }, 
-    { name: '🐍 Cobra Commander', icon: '🐍' }, 
-    { name: '💫 Chest Opener', icon: '💫' }, 
-    { name: '🌊 Flow Expert', icon: '🌊' },
-    { name: '🌅 Morning Stretcher', icon: '🌅' }, 
-    { name: '🧘 Deep Stretch Guru', icon: '🧘' }, 
-    { name: '🧘‍♀️ Yoga Warrior', icon: '🧘‍♀️' }, 
-    { name: '🤸‍♂️ Mobility Maestro', icon: '🤸‍♂️' }, 
-    { name: '☯️ Zen Flexibility', icon: '☯️' }
-  ];
-
-  const calisthenicsBadges = [
-    { name: '🔥 Calisthenics Challenger', icon: '🔥' }, 
-    { name: '🦘 Jumping Jack Jedi', icon: '🦘' }, 
-    { name: '🏋️‍♀️ Plank Perfectionist', icon: '🏋️‍♀️' }, 
-    { name: '🤸‍♂️ Body Weight Boss', icon: '🤸‍♂️' }, 
-    { name: '💃 Movement Maestro', icon: '💃' },
-    { name: '⚡ Dynamic Dynamo', icon: '⚡' }, 
-    { name: '🎯 Functional Fighter', icon: '🎯' }, 
-    { name: '🚫 No Equipment Ninja', icon: '🚫' }, 
-    { name: '🏙️ Street Workout Star', icon: '🏙️' }, 
-    { name: '👑 Calisthenics King', icon: '👑' }
-  ];
-
-  const paraAthleteBadges = [
-    { name: '♿ Para Warrior', icon: '♿' }, 
-    { name: '🔥 Knee Push-up Pro', icon: '🔥' }, 
-    { name: '🤝 Assisted Ace', icon: '🤝' }, 
-    { name: '🎯 Modified Master', icon: '🎯' }, 
-    { name: '🏃‍♀️ Adaptive Athlete', icon: '🏃‍♀️' },
-    { name: '🌟 Inclusive Star', icon: '🌟' }, 
-    { name: '💪 Supported Strength', icon: '💪' }, 
-    { name: '♿ Accessibility Ace', icon: '♿' }, 
-    { name: '❤️ Assisted Cardio', icon: '❤️' }, 
-    { name: '🏆 Para Elite', icon: '🏆' }
-  ];
-
-  const allBadges = [
-    ...strengthBadges, ...enduranceBadges, ...flexibilityBadges, ...calisthenicsBadges, ...paraAthleteBadges
-  ];
-
-  const badges = Array.from({ length: 50 }, (_, i) => {
-    const categoryIndex = Math.floor(i / 10);
-    const category = badgeCategories[categoryIndex];
-    const badgeInfo = allBadges[i] || { name: `${category.name} Badge ${i + 1}`, icon: category.icon };
-    const isEarned = i < 12; // User has earned first 12 badges
-    
-    return {
-      id: i + 1,
-      name: badgeInfo.name,
-      description: `Master ${category.name.toLowerCase()} activities and unlock advanced training`,
-      icon: badgeInfo.icon,
-      color: category.color,
-      earned: isEarned,
-      progress: isEarned ? 100 : Math.floor(Math.random() * 80) + 10,
-      requirement: `Complete ${Math.floor(i / 5) + 1} challenges`,
-      category: category.name
-    };
-  });
-
-  const earnedBadges = badges.filter(b => b.earned);
-  const unlockedBadges = badges.filter(b => !b.earned);
+  const getBadgeStatus = (badge: Badge) => {
+    const isUnlocked = unlockedBadges.includes(badge.id);
+    const progress = getBadgeProgress(badge, userStats);
+    return { isUnlocked, progress };
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -121,84 +58,160 @@ const BadgesScreen = ({ onBack }: BadgesScreenProps) => {
             }} className="mr-3 text-white hover:bg-white/20">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-semibold text-white">All Badges</h1>
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold text-white">Badges</h1>
+              <p className="text-sm text-white/80">{unlockedCount} of {totalBadges} unlocked</p>
+            </div>
+            <Trophy className="w-6 h-6 text-yellow-400" />
           </div>
         </div>
       </div>
 
-      <div className="px-4 pb-8 max-w-md mx-auto pt-6 space-y-6">
-        {/* Summary */}
-        <Card className="card-elevated">
-          <CardContent className="p-6 text-center">
-            <div className="flex justify-center mb-4">
-              <Trophy className="w-12 h-12 text-warning" />
+      <div className="px-4 py-6 max-w-md mx-auto space-y-6">
+        {/* Overall Progress */}
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="font-semibold text-lg">Your Progress</h3>
+                <p className="text-sm text-muted-foreground">Keep working out to unlock more!</p>
+              </div>
+              <div className="text-3xl">🏆</div>
             </div>
-            <h2 className="text-2xl font-bold mb-2">{earnedBadges.length} / {badges.length}</h2>
-            <p className="text-muted-foreground">Badges Earned</p>
-            <Progress value={(earnedBadges.length / badges.length) * 100} className="mt-4" />
+            <Progress value={completionPercentage} className="h-3 mb-2" />
+            <p className="text-sm text-center font-medium">{Math.round(completionPercentage)}% Complete</p>
           </CardContent>
         </Card>
 
-        {/* Earned Badges */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <Award className="w-5 h-5 mr-2 text-warning" />
-            Earned Badges ({earnedBadges.length})
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {earnedBadges.map((badge) => (
-              <Card key={badge.id} className={`relative overflow-hidden ${badge.color}`}>
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-                <CardContent className="p-4 text-center text-white relative">
-                  <div className="text-3xl mb-2">{badge.icon}</div>
-                  <h4 className="font-semibold text-sm mb-1">{badge.name}</h4>
-                  <p className="text-xs opacity-90">{badge.description}</p>
-                  <Badge className="mt-2 bg-white/20 text-white hover:bg-white/30" variant="outline">
-                    <Star className="w-3 h-3 mr-1" />
-                    Earned
-                  </Badge>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        {/* Category Filter */}
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {categories.map((category) => (
+            <Button
+              key={category.id}
+              variant={selectedCategory === category.id ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedCategory(category.id === selectedCategory ? null : category.id)}
+              className="shrink-0"
+            >
+              <span className="mr-1">{category.icon}</span>
+              {category.name}
+            </Button>
+          ))}
         </div>
 
-        {/* Locked Badges */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <Lock className="w-5 h-5 mr-2 text-muted-foreground" />
-            In Progress ({unlockedBadges.length})
-          </h3>
-          <div className="space-y-3">
-            {unlockedBadges.slice(0, 10).map((badge) => (
-              <Card key={badge.id} className="card-elevated">
+        {/* Badges Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          {filteredBadges.map((badge) => {
+            const { isUnlocked, progress } = getBadgeStatus(badge);
+
+            return (
+              <Card
+                key={badge.id}
+                className={`relative overflow-hidden transition-all ${
+                  isUnlocked
+                    ? 'bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-300 dark:border-yellow-700'
+                    : 'bg-card opacity-75'
+                }`}
+              >
                 <CardContent className="p-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="text-2xl opacity-50">{badge.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm mb-1">{badge.name}</h4>
-                      <p className="text-xs text-muted-foreground mb-2">{badge.description}</p>
-                      <div className="space-y-1">
-                        <Progress value={badge.progress} className="h-2" />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{badge.progress}% complete</span>
-                          <span>{badge.requirement}</span>
-                        </div>
-                      </div>
+                  {/* Badge Icon */}
+                  <div className="relative mb-3">
+                    <div
+                      className={`text-5xl mx-auto w-fit ${
+                        !isUnlocked && 'grayscale opacity-40'
+                      }`}
+                    >
+                      {badge.icon}
                     </div>
-                    <Lock className="w-4 h-4 text-muted-foreground" />
+                    {!isUnlocked && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Lock className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    {isUnlocked && (
+                      <div className="absolute -top-1 -right-1">
+                        <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Badge Info */}
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-center line-clamp-1">
+                      {badge.name}
+                    </h4>
+                    <p className="text-xs text-muted-foreground text-center line-clamp-2 min-h-[2rem]">
+                      {badge.description}
+                    </p>
+
+                    {/* Rarity Badge */}
+                    <div className="flex justify-center">
+                      <BadgeUI className={`text-xs ${getRarityColor(badge.rarity)}`}>
+                        {badge.rarity}
+                      </BadgeUI>
+                    </div>
+
+                    {/* Progress Bar (if not unlocked) */}
+                    {!isUnlocked && (
+                      <div>
+                        <Progress value={progress} className="h-1.5 mb-1" />
+                        <p className="text-xs text-center text-muted-foreground">
+                          {Math.round(progress)}%
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Requirement */}
+                    <p className="text-xs text-center text-muted-foreground italic">
+                      {badge.requirement.description}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-          
-          {unlockedBadges.length > 10 && (
-            <Button variant="outline" className="w-full mt-4">
-              Show More ({unlockedBadges.length - 10} remaining)
-            </Button>
-          )}
+            );
+          })}
         </div>
+
+        {/* Empty State */}
+        {filteredBadges.length === 0 && (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">No badges found</h3>
+              <p className="text-sm text-muted-foreground">
+                Try selecting a different category
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Stats Summary */}
+        <Card className="bg-muted/50">
+          <CardContent className="p-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              Your Stats
+            </h3>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-muted-foreground">Total Workouts</p>
+                <p className="font-bold text-lg">{userStats.totalWorkouts || 0}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Current Streak</p>
+                <p className="font-bold text-lg">{userStats.currentStreak || 0} days</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Perfect Workouts</p>
+                <p className="font-bold text-lg">{userStats.perfectWorkouts || 0}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Max Reps</p>
+                <p className="font-bold text-lg">{userStats.maxRepsInWorkout || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

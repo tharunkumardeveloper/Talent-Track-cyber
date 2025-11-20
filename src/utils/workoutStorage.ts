@@ -14,6 +14,8 @@ export interface WorkoutData {
   thumbnailUrl?: string; // Base64 encoded thumbnail
   badgesEarned?: string[];
   coinsEarned?: number;
+  correctReps?: number;
+  totalReps?: number;
 }
 
 /**
@@ -270,4 +272,77 @@ export const getStorageInfo = () => {
     totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
     workoutCount: getWorkoutHistory().length
   };
+};
+
+/**
+ * Get user stats for badge tracking
+ */
+export const getUserStats = (): any => {
+  try {
+    const stats = localStorage.getItem('user_stats');
+    return stats ? JSON.parse(stats) : {
+      exerciseReps: {},
+      totalWorkouts: 0,
+      perfectWorkouts: 0,
+      maxRepsInWorkout: 0,
+      workoutDates: [],
+      currentStreak: 0
+    };
+  } catch (error) {
+    console.error('Error getting user stats:', error);
+    return {
+      exerciseReps: {},
+      totalWorkouts: 0,
+      perfectWorkouts: 0,
+      maxRepsInWorkout: 0,
+      workoutDates: [],
+      currentStreak: 0
+    };
+  }
+};
+
+/**
+ * Save user stats
+ */
+export const saveUserStats = (stats: any): void => {
+  try {
+    localStorage.setItem('user_stats', JSON.stringify(stats));
+  } catch (error) {
+    console.error('Error saving user stats:', error);
+  }
+};
+
+/**
+ * Get unlocked badges
+ */
+export const getUnlockedBadges = (): string[] => {
+  try {
+    const badges = localStorage.getItem('unlocked_badges');
+    return badges ? JSON.parse(badges) : [];
+  } catch (error) {
+    console.error('Error getting unlocked badges:', error);
+    return [];
+  }
+};
+
+/**
+ * Save unlocked badges
+ */
+export const saveUnlockedBadges = (badges: string[]): void => {
+  try {
+    localStorage.setItem('unlocked_badges', JSON.stringify(badges));
+  } catch (error) {
+    console.error('Error saving unlocked badges:', error);
+  }
+};
+
+/**
+ * Add newly unlocked badge
+ */
+export const unlockBadge = (badgeId: string): void => {
+  const unlocked = getUnlockedBadges();
+  if (!unlocked.includes(badgeId)) {
+    unlocked.push(badgeId);
+    saveUnlockedBadges(unlocked);
+  }
 };

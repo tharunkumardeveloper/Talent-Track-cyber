@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { toast } from '@/components/ui/sonner';
 import WorkoutUploadScreen from './WorkoutUploadScreen';
 import VideoProcessor from './VideoProcessor';
 import LiveCameraProcessor from './LiveCameraProcessor';
 import LiveRecorder from './LiveRecorder';
+import { BADGES, checkBadgeUnlock, updateUserStats } from '@/utils/badgeSystem';
+import { getUserStats, saveUserStats, getUnlockedBadges, unlockBadge } from '@/utils/workoutStorage';
 
 interface WorkoutInterfaceProps {
   activity: {
@@ -67,6 +70,40 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
   };
 
   const handleWorkoutComplete = async (results: any) => {
+    // Update user stats
+    const currentStats = getUserStats();
+    const updatedStats = updateUserStats(currentStats, {
+      activityName: activity.name,
+      setsCompleted: results.setsCompleted,
+      badSets: results.badSets,
+      posture: results.posture
+    });
+    saveUserStats(updatedStats);
+
+    // Check for newly unlocked badges
+    const previouslyUnlocked = getUnlockedBadges();
+    const newlyUnlocked: string[] = [];
+
+    BADGES.forEach(badge => {
+      if (!previouslyUnlocked.includes(badge.id) && checkBadgeUnlock(badge, updatedStats)) {
+        unlockBadge(badge.id);
+        newlyUnlocked.push(badge.id);
+      }
+    });
+
+    // Show toast for newly unlocked badges
+    if (newlyUnlocked.length > 0) {
+      const badgeNames = newlyUnlocked
+        .map(id => BADGES.find(b => b.id === id)?.name)
+        .filter(Boolean)
+        .join(', ');
+      
+      toast.success(`🏆 Badge${newlyUnlocked.length > 1 ? 's' : ''} Unlocked!`, {
+        description: badgeNames,
+        duration: 5000,
+      });
+    }
+
     // Save workout to localStorage for Reports tab
     const workoutData = {
       id: Date.now(),
@@ -77,8 +114,10 @@ const WorkoutInterface = ({ activity, mode, onBack }: WorkoutInterfaceProps) => 
       duration: results.duration,
       timestamp: new Date().toISOString(),
       videoUrl: results.videoUrl,
-      badgesEarned: ['Form Analyzer', 'Consistency Champion'],
+      badgesEarned: newlyUnlocked,
       coinsEarned: results.posture === 'Good' ? 50 : 25,
+      correctReps: results.stats?.correctReps || 0,
+      totalReps: results.stats?.totalReps || results.setsCompleted,
       ...results
     };
 
