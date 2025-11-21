@@ -427,12 +427,12 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
           if (mp.drawConnectors && mp.POSE_CONNECTIONS) {
             mp.drawConnectors(ctx, lastLandmarksRef.current, mp.POSE_CONNECTIONS, {
               color: '#00FFFF',
-              lineWidth: 2
+              lineWidth: 4
             });
             mp.drawLandmarks(ctx, lastLandmarksRef.current, {
               color: '#FFFFFF',
               fillColor: '#00FFFF',
-              radius: 3
+              radius: 6
             });
           }
         }
@@ -459,8 +459,8 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
   };
 
   const drawOverlay = (ctx: CanvasRenderingContext2D) => {
-    ctx.font = 'bold 24px Arial';
-    ctx.lineWidth = 2;
+    ctx.font = 'bold 32px Arial';
+    ctx.lineWidth = 3;
     ctx.strokeStyle = '#000000';
     
     const state = detectorStateRef.current?.state || 'unknown';
@@ -758,15 +758,7 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
             </div>
           </div>
 
-          <div className="absolute top-12 left-2 pointer-events-auto">
-            <Badge className="bg-black/70 text-white border-white/30 px-2 py-1 text-xs">
-              {stage === 'setup' && '📹 Ready'}
-              {stage === 'recording' && '🔴 Live'}
-              {stage === 'review' && '✓ Complete'}
-              <span className="ml-1">•</span>
-              <span className="ml-1">{activityName}</span>
-            </Badge>
-          </div>
+
 
           {stage === 'recording' && (
             <div className="absolute top-20 right-2 space-y-1 pointer-events-auto">
