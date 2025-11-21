@@ -721,9 +721,9 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
           )}
 
           {stage === 'recording' && (
-            <div className="absolute bottom-20 left-2 right-2">
-              <div className="bg-blue-500/90 text-white px-3 py-2 rounded-lg backdrop-blur-sm text-center">
-                <p className="text-xs font-medium">💡 {tips[currentTip]}</p>
+            <div className="absolute bottom-20 left-2">
+              <div className="bg-blue-500/90 text-white px-2 py-1 rounded-md backdrop-blur-sm max-w-[140px]">
+                <p className="text-[10px] font-medium leading-tight">💡 {tips[currentTip]}</p>
               </div>
             </div>
           )}
