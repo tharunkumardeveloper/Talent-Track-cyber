@@ -216,11 +216,6 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
   };
 
   const switchCamera = async () => {
-    if (stage === 'recording') {
-      toast.error('Stop recording first', { duration: 2000 });
-      return;
-    }
-
     try {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -228,7 +223,6 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
 
       const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
       setFacingMode(newFacingMode);
-      setIsLoading(true);
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
@@ -249,12 +243,10 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
         };
       }
 
-      setIsLoading(false);
       toast.success(`${newFacingMode === 'user' ? 'Front' : 'Back'} camera`, { duration: 2000 });
     } catch (error) {
       console.error('Camera switch error:', error);
       toast.error('Switch failed', { duration: 2000 });
-      setIsLoading(false);
     }
   };
 
@@ -480,8 +472,8 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
       ? (Date.now() - startTimeRef.current) / 1000 
       : recordingTime;
     
-    // Start metrics lower down (around 200px from top)
-    let yPosition = 200;
+    // Start metrics lower down (around 280px from top)
+    let yPosition = 280;
     
     if (currentAngle !== undefined && currentAngle !== null) {
       ctx.fillStyle = '#00FF00';
@@ -734,27 +726,27 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
                     </Button>
                   </>
                 )}
+                {(stage === 'setup' || stage === 'recording') && !isLoading && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={switchCamera}
+                    className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </Button>
+                )}
                 {stage === 'setup' && !isLoading && (
-                  <>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setShowDemoDialog(true)}
-                      className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                    >
-                      <Info className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={switchCamera}
-                      className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                    </Button>
-                  </>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowDemoDialog(true)}
+                    className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                  >
+                    <Info className="w-4 h-4" />
+                  </Button>
                 )}
                 {stage === 'recording' && (
                   <Badge variant="destructive" className="animate-pulse px-2 py-1 text-xs">
