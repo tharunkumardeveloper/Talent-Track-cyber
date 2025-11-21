@@ -480,37 +480,45 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
       ? (Date.now() - startTimeRef.current) / 1000 
       : recordingTime;
     
+    // Start metrics lower down (around 120px from top to align with UI metrics)
+    let yPosition = 120;
+    
     if (currentAngle !== undefined && currentAngle !== null) {
       ctx.fillStyle = '#00FF00';
       const angleText = `Elbow: ${Math.round(currentAngle)}`;
-      ctx.strokeText(angleText, 10, 30);
-      ctx.fillText(angleText, 10, 30);
+      ctx.strokeText(angleText, 10, yPosition);
+      ctx.fillText(angleText, 10, yPosition);
+      yPosition += 35;
     }
     
     ctx.fillStyle = '#00FFFF';
     const repText = `${activityName}: ${repCount}`;
-    ctx.strokeText(repText, 10, 60);
-    ctx.fillText(repText, 10, 60);
+    ctx.strokeText(repText, 10, yPosition);
+    ctx.fillText(repText, 10, yPosition);
+    yPosition += 35;
     
     ctx.fillStyle = state === 'down' ? '#00FF00' : '#C8C800';
     const stateText = `State: ${state}`;
-    ctx.strokeText(stateText, 10, 95);
-    ctx.fillText(stateText, 10, 95);
+    ctx.strokeText(stateText, 10, yPosition);
+    ctx.fillText(stateText, 10, yPosition);
+    yPosition += 35;
     
     ctx.fillStyle = '#00FF00';
     const correctText = `Correct: ${correctCount}`;
-    ctx.strokeText(correctText, 10, 130);
-    ctx.fillText(correctText, 10, 130);
+    ctx.strokeText(correctText, 10, yPosition);
+    ctx.fillText(correctText, 10, yPosition);
+    yPosition += 35;
     
-    ctx.fillStyle = '#0000FF';
+    ctx.fillStyle = '#FF0000';
     const incorrectText = `Bad: ${incorrectCount}`;
-    ctx.strokeText(incorrectText, 10, 160);
-    ctx.fillText(incorrectText, 10, 160);
+    ctx.strokeText(incorrectText, 10, yPosition);
+    ctx.fillText(incorrectText, 10, yPosition);
+    yPosition += 35;
     
     ctx.fillStyle = '#FFFF00';
     const timeText = `Time: ${elapsedTime.toFixed(1)}s`;
-    ctx.strokeText(timeText, 10, 190);
-    ctx.fillText(timeText, 10, 190);
+    ctx.strokeText(timeText, 10, yPosition);
+    ctx.fillText(timeText, 10, yPosition);
   };
 
   const stopRecording = () => {
