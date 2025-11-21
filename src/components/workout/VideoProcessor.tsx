@@ -844,7 +844,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                   </div>
                 )}
 
-                {result.stats?.avgRepDuration && (
+                {result.stats?.avgRepDuration && result.stats.avgRepDuration > 0 && result.stats.totalReps > 0 && (
                   <div className="text-center p-3 rounded-lg bg-secondary/30">
                     <div className="text-2xl font-bold mb-1">{result.stats.avgRepDuration.toFixed(1)}s</div>
                     <p className="text-xs text-muted-foreground">Avg Rep Time</p>
