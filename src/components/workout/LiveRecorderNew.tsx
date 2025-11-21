@@ -289,7 +289,8 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
         const finalState = detectorStateRef.current;
         const correctReps = finalState.correctCount || 0;
         const incorrectReps = finalState.incorrectCount || 0;
-        const totalReps = repCount;
+        // Total reps should be the sum of correct and incorrect
+        const totalReps = correctReps + incorrectReps;
         
         const hasReps = totalReps > 0;
         const goodPosture = hasReps && (correctReps >= incorrectReps);

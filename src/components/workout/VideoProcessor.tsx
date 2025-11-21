@@ -880,7 +880,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                     ) : (
                       <>
                         {result.stats.correctReps !== undefined && result.stats.totalReps !== undefined && (
-                          <p>✅ Correct reps: {result.stats.correctReps}/{result.stats.totalReps} ({Math.round((result.stats.correctReps / result.stats.totalReps) * 100)}%)</p>
+                          <p>✅ Correct reps: {result.stats.correctReps}/{result.stats.totalReps} ({result.stats.totalReps > 0 ? Math.round((result.stats.correctReps / result.stats.totalReps) * 100) : 0}%)</p>
                         )}
                         {result.stats.maxJumpHeight && (
                           <p>🏆 Best jump: {result.stats.maxJumpHeight.toFixed(2)}m</p>
