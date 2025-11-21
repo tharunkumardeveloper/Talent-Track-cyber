@@ -387,28 +387,8 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
 
   const handleSubmitWorkout = async () => {
     if (result && (result.type === 'good' || result.type === 'bad')) {
-      // Save to localStorage for Reports tab
-      const workoutData = {
-        id: Date.now(),
-        activityName,
-        posture: result.posture,
-        setsCompleted: result.setsCompleted,
-        badSets: result.badSets,
-        duration: result.duration,
-        timestamp: new Date().toISOString(),
-        videoUrl: result.videoUrl,
-        badgesEarned: ['Form Analyzer', 'Consistency Champion'],
-        coinsEarned: result.type === 'good' ? 50 : 25
-      };
-
-      // Use utility function to add workout with thumbnail generation
-      const { addWorkoutToHistory } = await import('@/utils/workoutStorage');
-      
-      // Pass video file or URL for thumbnail generation
-      const videoSource = videoFile || result.videoUrl;
-      await addWorkoutToHistory(workoutData, videoSource);
-
-      onComplete(workoutData);
+      // Pass result to parent - WorkoutInterface will handle saving to history
+      onComplete(result);
     }
   };
 
