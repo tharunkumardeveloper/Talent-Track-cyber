@@ -137,6 +137,13 @@
     overflow-x: hidden;
   }
 
+  /* Default portrait orientation for all pages */
+  @media screen and (orientation: landscape) and (max-width: 1024px) {
+    body:not(.force-landscape) {
+      transform: rotate(0deg);
+    }
+  }
+
   /* Mobile viewport fix */
   html {
     height: 100%;

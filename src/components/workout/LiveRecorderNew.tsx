@@ -109,11 +109,47 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
   const tips = WORKOUT_TIPS[activityName] || WORKOUT_TIPS['Push-ups'];
   const demo = WORKOUT_DEMOS[activityName] || WORKOUT_DEMOS['Push-ups'];
 
-  // Initialize camera
+  // Initialize camera and lock orientation to landscape
   useEffect(() => {
+    // Add force-landscape class to body
+    document.body.classList.add('force-landscape');
+    
     initCamera();
-    return () => cleanup();
+    lockOrientation();
+    
+    return () => {
+      // Remove force-landscape class from body
+      document.body.classList.remove('force-landscape');
+      cleanup();
+      unlockOrientation();
+    };
   }, []);
+
+  const lockOrientation = async () => {
+    try {
+      // Lock to landscape orientation
+      const screenOrientation = screen.orientation as any;
+      if (screenOrientation && screenOrientation.lock) {
+        await screenOrientation.lock('landscape').catch((err: any) => {
+          console.log('Orientation lock not supported:', err);
+        });
+      }
+    } catch (error) {
+      console.log('Could not lock orientation:', error);
+    }
+  };
+
+  const unlockOrientation = () => {
+    try {
+      // Unlock orientation when leaving
+      const screenOrientation = screen.orientation as any;
+      if (screenOrientation && screenOrientation.unlock) {
+        screenOrientation.unlock();
+      }
+    } catch (error) {
+      console.log('Could not unlock orientation:', error);
+    }
+  };
 
   // Cycle tips during recording
   useEffect(() => {
@@ -605,7 +641,10 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-50">
+    <div className="fixed inset-0 bg-black z-50" style={{ 
+      WebkitTransform: 'rotate(0deg)',
+      transform: 'rotate(0deg)'
+    }}>
       <div 
         className="relative w-full h-full"
         onTouchStart={handleTouchStart}
