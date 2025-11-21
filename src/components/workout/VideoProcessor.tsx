@@ -859,16 +859,16 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                       </>
                     ) : (
                       <>
-                        {result.stats.correctReps !== undefined && result.stats.totalReps !== undefined && (
-                          <p>✅ Correct reps: {result.stats.correctReps}/{result.stats.totalReps} ({result.stats.totalReps > 0 ? Math.round((result.stats.correctReps / result.stats.totalReps) * 100) : 0}%)</p>
+                        {result.stats.correctReps !== undefined && result.stats.totalReps !== undefined && result.stats.totalReps > 0 && (
+                          <p>✅ Correct reps: {result.stats.correctReps}/{result.stats.totalReps} ({Math.round((result.stats.correctReps / result.stats.totalReps) * 100)}%)</p>
                         )}
-                        {result.stats.maxJumpHeight && (
+                        {result.stats.maxJumpHeight && result.stats.maxJumpHeight > 0 && (
                           <p>🏆 Best jump: {result.stats.maxJumpHeight.toFixed(2)}m</p>
                         )}
-                        {result.stats.avgJumpHeight && (
+                        {result.stats.avgJumpHeight && result.stats.avgJumpHeight > 0 && (
                           <p>📊 Average jump: {result.stats.avgJumpHeight.toFixed(2)}m</p>
                         )}
-                        {result.stats.avgSplitTime && (
+                        {result.stats.avgSplitTime && result.stats.avgSplitTime > 0 && (
                           <p>⏱️ Average split time: {result.stats.avgSplitTime.toFixed(2)}s</p>
                         )}
                         {result.stats.minElbowAngle && result.stats.minElbowAngle < 90 && (
@@ -877,7 +877,7 @@ const VideoProcessor = ({ videoFile, activityName, onBack, onRetry, onComplete, 
                         {result.stats.avgRepDuration && result.stats.avgRepDuration > 0 && (
                           <p>⏲️ Average rep time: {result.stats.avgRepDuration.toFixed(1)}s</p>
                         )}
-                        {result.stats.distance && (
+                        {result.stats.distance && result.stats.distance > 0 && (
                           <p>📏 Distance covered: {result.stats.distance.toFixed(2)}m</p>
                         )}
                       </>
