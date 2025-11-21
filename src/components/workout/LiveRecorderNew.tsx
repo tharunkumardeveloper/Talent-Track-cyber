@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Video, StopCircle, CheckCircle, RotateCcw, Loader2, Info } from 'lucide-react';
+import { ArrowLeft, Video, StopCircle, CheckCircle, Loader2, Info } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import {
   Dialog,
@@ -90,10 +90,10 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
   const lastLandmarksRef = useRef<any>(null);
   const detectorStateRef = useRef<any>({});
   
-  const [stage, setStage] = useState<'setup' | 'recording' | 'review'>('setup');
+  const [stage, setStage] = useState<'setup' | 'recording'>('setup');
   const [isLoading, setIsLoading] = useState(true);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+
   const [currentTip, setCurrentTip] = useState(0);
   const [repCount, setRepCount] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
@@ -283,8 +283,36 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
 
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-        setRecordedBlob(blob);
-        setStage('review');
+        
+        // Directly proceed to output screen
+        const videoUrl = URL.createObjectURL(blob);
+        const finalState = detectorStateRef.current;
+        const correctReps = finalState.correctCount || 0;
+        const incorrectReps = finalState.incorrectCount || 0;
+        const totalReps = repCount;
+        
+        const hasReps = totalReps > 0;
+        const goodPosture = hasReps && (correctReps >= incorrectReps);
+
+        const results = {
+          type: goodPosture ? 'good' : (hasReps ? 'poor' : 'bad'),
+          posture: goodPosture ? 'Good' as const : 'Bad' as const,
+          setsCompleted: totalReps,
+          badSets: incorrectReps,
+          duration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, '0')}`,
+          videoUrl: videoUrl,
+          videoBlob: blob,
+          stats: {
+            totalReps: totalReps,
+            correctReps: correctReps,
+            incorrectReps: incorrectReps,
+            avgRepDuration: totalReps > 0 ? recordingTime / totalReps : 0,
+            totalTime: recordingTime,
+            csvData: []
+          }
+        };
+
+        onComplete(results);
       };
 
       mediaRecorderRef.current = recorder;
@@ -495,51 +523,9 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
     toast.success('Recording stopped', { duration: 2000 });
   };
 
-  const useRecording = () => {
-    if (!recordedBlob) return;
 
-    const videoUrl = URL.createObjectURL(recordedBlob);
-    const finalState = detectorStateRef.current;
-    const correctReps = finalState.correctCount || 0;
-    const incorrectReps = finalState.incorrectCount || 0;
-    const totalReps = repCount;
-    
-    const hasReps = totalReps > 0;
-    const goodPosture = hasReps && (correctReps >= incorrectReps);
 
-    const results = {
-      type: goodPosture ? 'good' : (hasReps ? 'poor' : 'bad'),
-      posture: goodPosture ? 'Good' as const : 'Bad' as const,
-      setsCompleted: totalReps,
-      badSets: incorrectReps,
-      duration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, '0')}`,
-      videoUrl: videoUrl,
-      videoBlob: recordedBlob,
-      stats: {
-        totalReps: totalReps,
-        correctReps: correctReps,
-        incorrectReps: incorrectReps,
-        avgRepDuration: totalReps > 0 ? recordingTime / totalReps : 0,
-        totalTime: recordingTime,
-        csvData: []
-      }
-    };
 
-    onComplete(results);
-  };
-
-  const retryRecording = () => {
-    isRecordingRef.current = false;
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
-    setStage('setup');
-    setRecordedBlob(null);
-    setRepCount(0);
-    setRecordingTime(0);
-    chunksRef.current = [];
-  };
 
   const cleanup = () => {
     if (streamRef.current) {
@@ -610,7 +596,7 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
   };
 
   return (
-    <div className={`fixed inset-0 z-50 ${stage === 'review' ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-black'}`} style={{ 
+    <div className="fixed inset-0 bg-black z-50" style={{ 
       WebkitTransform: 'rotate(0deg)',
       transform: 'rotate(0deg)'
     }}>
@@ -797,61 +783,7 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
                 </Button>
               )}
 
-              {stage === 'review' && recordedBlob && (
-                <div className="w-full space-y-3">
-                  {/* Video Preview Card */}
-                  <Card className="bg-black/70 backdrop-blur-lg border-white/20 overflow-hidden">
-                    <CardContent className="p-3">
-                      <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
-                        <video
-                          src={URL.createObjectURL(recordedBlob)}
-                          className="w-full h-full object-contain"
-                          controls
-                          playsInline
-                          autoPlay
-                          loop
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
 
-                  {/* Stats Card */}
-                  <Card className="bg-black/70 backdrop-blur-lg border-white/20">
-                    <CardContent className="p-3">
-                      <div className="flex justify-around text-white">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-400">{repCount}</div>
-                          <div className="text-xs opacity-80">Total Reps</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-400">
-                            {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
-                          </div>
-                          <div className="text-xs opacity-80">Duration</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Action Buttons */}
-                  <Button 
-                    onClick={useRecording} 
-                    className="w-full h-12 text-base bg-green-600 hover:bg-green-700"
-                    size="lg"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Use This Recording
-                  </Button>
-                  <Button 
-                    onClick={retryRecording} 
-                    variant="outline" 
-                    className="w-full h-10 text-sm text-white border-white/30 hover:bg-white/20"
-                  >
-                    <RotateCcw className="w-3 h-3 mr-2" />
-                    Record Again
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
         </div>
