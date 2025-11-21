@@ -47,21 +47,7 @@ const Index = () => {
       setIsFirstTime(false);
     }
 
-    // Lock to portrait orientation for all pages except live recorder
-    const lockToPortrait = async () => {
-      try {
-        const screenOrientation = screen.orientation as any;
-        if (screenOrientation && screenOrientation.lock) {
-          await screenOrientation.lock('portrait').catch((err: any) => {
-            console.log('Portrait lock not supported:', err);
-          });
-        }
-      } catch (error) {
-        console.log('Could not lock to portrait:', error);
-      }
-    };
 
-    lockToPortrait();
 
     // Register service worker for offline support
     if ('serviceWorker' in navigator) {
