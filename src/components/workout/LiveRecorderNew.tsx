@@ -765,7 +765,7 @@ const LiveRecorderNew = ({ activityName, onBack, onComplete }: LiveRecorderProps
           </div>
 
           {stage === 'recording' && (
-            <div className="absolute top-20 left-2 space-y-1">
+            <div className="absolute top-32 left-2 space-y-1">
               <div className="bg-black/70 text-white px-2 py-1.5 rounded-lg backdrop-blur-sm">
                 <div className="text-xl font-bold">{repCount}</div>
                 <div className="text-[10px] opacity-80">Reps</div>
