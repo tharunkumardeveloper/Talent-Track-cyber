@@ -1,39 +1,400 @@
-# Talent Track - AI-Powered Fitness Analysis
+<div align="center">
 
-##  Hackathon Submission
-### What Died
-- Push-ups, Pull-ups, Sit-ups
-- Shuttle Run, Vertical Jump
-- Sit & Reach, Broad Jump
+# 🏆 TalentTrack - AI-Powered Fitness Revolution
 
-It motivated millions but died due to:
-- Manual testing was time-consuming
-- No real-time feedback
-- Inconsistent scoring
-- Lack of engagement for digital natives
+![TalentTrack Banner](https://img.shields.io/badge/TalentTrack-AI%20Fitness%20Platform-6366f1?style=for-the-badge&logo=react&logoColor=white)
 
-### What We Brought Back
-**Talent Track** resurrects this iconic program with modern AI:
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Try_Now-10b981?style=for-the-badge)](https://rec-green.vercel.app)
+[![GitHub Stars](https://img.shields.io/badge/⭐_Star_on-GitHub-fbbf24?style=for-the-badge)](https://github.com/tharunkumardeveloper/rec)
+[![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge)](LICENSE)
 
-- **AI-Powered Analysis**: MediaPipe pose detection replaces manual counting
-- **Real-Time Feedback**: Instant form validation with skeleton overlay
-- **Consistent Scoring**: AI ensures fair, accurate measurements
-- **Gamification**: Challenges and leaderboards engage today's generation
-- **Accessibility**: Anyone with a camera can participate
-- **All 7 Original Tests**: Complete Presidential Fitness Test suite
+### 🎯 Transform Your Fitness Journey with AI-Powered Workout Analysis
 
-### Why It Matters Today
-- **Fitness Crisis**: Youth obesity has tripled since the program ended
-- **Digital Solution**: Meets kids where they are (on screens)
-- **Scalability**: AI enables millions to test simultaneously
-- **Data-Driven**: Track progress over time with detailed metrics
-- **Motivation**: Gamification drives engagement better than ever
+**Real-time Pose Detection • Voice Coaching • Ghost Mode Racing • Gamification**
+
+[🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🎮 Workout Modes](#-workout-modes) • [🛠️ Tech Stack](#️-tech-stack) • [📱 Demo](#-demo)
+
+</div>
+
+---
+
+<div align="center">
+
+## 🌟 What is TalentTrack?
+
+TalentTrack is a **next-generation fitness platform** that combines cutting-edge **AI pose detection**, **real-time voice coaching**, and **gamification** to revolutionize how you work out!
+
+### 💪 Why Choose TalentTrack?
+
+</div>
+
+<div align="center">
+<table align="center">
+<tr>
+<td width="50%" align="center">
+
+🤖 **AI-Powered Analysis**
+- MediaPipe pose detection
+- Accurate rep counting
+- Real-time form validation
+- Skeleton overlay visualization
+
+🎤 **Voice Coach**
+- ElevenLabs AI integration
+- Real-time encouragement
+- Personalized feedback
+- Multiple voice options
+
+</td>
+<td width="50%" align="center">
+
+👻 **Ghost Mode**
+- Race your best performances
+- Visual ghost comparison
+- Beat personal records
+- Competitive motivation
+
+📊 **Advanced Analytics**
+- Detailed progress tracking
+- Rep-by-rep breakdown
+- Video playback
+- PDF reports
+
+</td>
+</tr>
+</table>
+</div>
+
+</div>
+
+---
+
+<div align="center">
+
+## 🎮 Workout Modes
+
+### 💪 Normal Mode - AI-Powered Training
+
+<img src="public/pushup.gif" alt="Push-ups" width="280"/>
+<img src="public/pullup.gif" alt="Pull-ups" width="280"/>
+<img src="public/situp.gif" alt="Sit-ups" width="280"/>
+
+**Real-time rep counting • Form validation • Voice coaching • Performance metrics**
+
+</div>
+
+<div align="center">
+
+### 👻 Ghost Mode - Race Your Best Self!
+
+<img src="public/ghost-mode-demo.gif" alt="Ghost Mode Demo" width="700"/>
+
+**The Ultimate Challenge: Compete Against Your Previous Best Performance**
+
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/fluency/96/000000/running.png" width="64"/><br/>
+<b>Race Your Ghost</b><br/>
+See your past performance<br/>alongside current workout
+</td>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/fluency/96/000000/graph.png" width="64"/><br/>
+<b>Real-time Comparison</b><br/>
+Live rep count and<br/>pace comparison
+</td>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/fluency/96/000000/trophy.png" width="64"/><br/>
+<b>Beat Records</b><br/>
+Push harder to surpass<br/>your personal best
+</td>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/fluency/96/000000/fire-element.png" width="64"/><br/>
+<b>Stay Motivated</b><br/>
+Competitive edge like<br/>never before
+</td>
+</tr>
+</table>
+</div>
+
+<div align="center">
+
+### 🎯 Test Mode - Timed Challenges
+
+**⏱️ 30-second • 1-minute • 2-minute challenges**
+
+Push your limits • Compete for high scores • Track progress • Earn badges
+
+</div>
+
+---
+
+## ✨ Features
+
+<div align="center">
+
+### 🏋️ Supported Workouts
+
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="33%">
+<img src="public/pushup.gif" width="200"/><br/>
+<b>💪 Push-ups</b><br/>
+<sub>Elbow angle tracking</sub>
+</td>
+<td align="center" width="33%">
+<img src="public/pullup.gif" width="200"/><br/>
+<b>🏋️ Pull-ups</b><br/>
+<sub>Chin-over-bar detection</sub>
+</td>
+<td align="center" width="33%">
+<img src="public/situp.gif" width="200"/><br/>
+<b>🧘 Sit-ups</b><br/>
+<sub>Torso angle validation</sub>
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="public/squat.webp" width="200"/><br/>
+<b>🦵 Squats</b><br/>
+<sub>Knee angle tracking</sub>
+</td>
+<td align="center">
+<img src="public/verticaljump.gif" width="200"/><br/>
+<b>🚀 Vertical Jump</b><br/>
+<sub>Height measurement</sub>
+</td>
+<td align="center">
+<img src="public/shuttlerun.gif" width="200"/><br/>
+<b>🏃 Shuttle Run</b><br/>
+<sub>Distance tracking</sub>
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="public/sit&reach.gif" width="200"/><br/>
+<b>🤸 Sit & Reach</b><br/>
+<sub>Flexibility test</sub>
+</td>
+<td align="center">
+<img src="public/kneepushup.gif" width="200"/><br/>
+<b>🦵 Knee Push-ups</b><br/>
+<sub>Modified version</sub>
+</td>
+<td align="center">
+<br/><br/>
+<b>➕ More Variations</b><br/>
+<sub>Wide-arm, Inclined, etc.</sub>
+</td>
+</tr>
+</table>
+</div>
+
+---
+
+<div align="center">
+
+### 🎤 AI Voice Coach - Your Personal Trainer
+
+<img src="https://img.icons8.com/fluency/96/000000/voice.png" width="80"/>
+
+**Powered by ElevenLabs AI - Ultra-Realistic Voice Synthesis**
+
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td width="50%" align="center">
+
+**🗣️ Dynamic Feedback**
+- "10 reps! You're crushing it!"
+- "Keep that form perfect!"
+- "You're on fire! Don't stop!"
+
+**💪 Form Corrections**
+- Real-time posture alerts
+- Technique improvements
+- Safety reminders
+
+</td>
+<td width="50%" align="center">
+
+**🎯 Milestone Celebrations**
+- "New personal record!"
+- "50 reps achieved!"
+- "You're unstoppable!"
+
+**👤 Personalized Motivation**
+- Uses your name
+- Adapts to your pace
+- Emotional intelligence
+
+</td>
+</tr>
+</table>
+</div>
+
+<div align="center">
+
+**Voice Options:**  
+👨 **Adam** - Deep, authoritative male voice  
+👩 **Freya** - Natural, warm female voice
+
+</div>
+
+---
+
+<div align="center">
+
+### 📊 Analytics & Progress Tracking
+
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="20%">
+<img src="https://img.icons8.com/fluency/96/000000/line-chart.png" width="64"/><br/>
+<b>Progress Tracking</b><br/>
+<sub>View improvement<br/>over time</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://img.icons8.com/fluency/96/000000/accuracy.png" width="64"/><br/>
+<b>Form Analysis</b><br/>
+<sub>Rep-by-rep<br/>breakdown</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://img.icons8.com/fluency/96/000000/camera.png" width="64"/><br/>
+<b>Rep Screenshots</b><br/>
+<sub>Individual frames<br/>for each rep</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://img.icons8.com/fluency/96/000000/video.png" width="64"/><br/>
+<b>Video Playback</b><br/>
+<sub>Watch with skeleton<br/>overlay</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://img.icons8.com/fluency/96/000000/pdf.png" width="64"/><br/>
+<b>PDF Reports</b><br/>
+<sub>Downloadable<br/>summaries</sub>
+</td>
+</tr>
+</table>
+</div>
+
+---
+
+<div align="center">
+
+### 👥 Social & Coaching Features
+
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td width="50%" align="center">
+
+**🤝 Social Connection**
+- Follow friends
+- Share achievements
+- Motivate each other
+- Join challenges together
+
+**🏅 Gamification**
+- Leaderboards
+- Badges & achievements
+- Daily challenges
+- Streak tracking
+
+</td>
+<td width="50%" align="center">
+
+**👨‍🏫 Coach Dashboard**
+- Monitor athlete progress
+- View detailed analytics
+- Create training content
+- Assign workouts
+- Track team performance
+
+**💬 AI Chat Support**
+- FitFranken AI assistant
+- Get workout advice
+- Form tips
+- Nutrition guidance
+
+</td>
+</tr>
+</table>
+</div>
+
+---
+
+<div align="center">
+
+### 🏛️ SAI Admin Dashboard
+
+**Special Features for Sports Authority of India**
+
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/fluency/96/000000/leaderboard.png" width="64"/><br/>
+<b>National Leaderboard</b><br/>
+<sub>Top athletes across India</sub>
+</td>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/fluency/96/000000/calendar.png" width="64"/><br/>
+<b>Event Scheduling</b><br/>
+<sub>Manage competitions</sub>
+</td>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/fluency/96/000000/search.png" width="64"/><br/>
+<b>Talent Scouting</b><br/>
+<sub>Identify promising athletes</sub>
+</td>
+<td align="center" width="25%">
+<img src="https://img.icons8.com/fluency/96/000000/dashboard.png" width="64"/><br/>
+<b>Analytics Dashboard</b><br/>
+<sub>Comprehensive metrics</sub>
+</td>
+</tr>
+</table>
+</div>
+
+---
+
+<div align="center">
 
 ## 🚀 Quick Start
 
-### Installation
+### 🌐 Try it Online - No Installation Required!
+
+[![Launch App](https://img.shields.io/badge/🚀_Launch-TalentTrack_App-10b981?style=for-the-badge&logo=vercel)](https://rec-green.vercel.app)
+
+</div>
+
+<div align="center">
+
+### 💻 Run Locally
+
+</div>
 
 ```bash
+# Clone the repository
+git clone https://github.com/tharunkumardeveloper/rec.git
+cd rec
+
 # Install dependencies
 npm install
 
@@ -41,203 +402,422 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173** in your browser.
+Open **http://localhost:5173** in your browser and start training! 💪
 
-### Requirements
-- Node.js 16+
-- Modern browser (Chrome, Firefox, Safari, Edge)
-- Webcam (optional, for live recording)
+<div align="center">
 
-**Note**: All AI processing happens in your browser using MediaPipe - no backend server or cloud required!
+### 📦 Requirements
+
+✅ Node.js 16+ • ✅ Modern browser (Chrome recommended) • ✅ Webcam (for live workouts)
+
+</div>
+
+---
+
+<div align="center">
+
+## 🛠️ Tech Stack
+
+</div>
+
+<div align="center">
+
+### Frontend
+
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+
+### AI & Machine Learning
+
+![MediaPipe](https://img.shields.io/badge/MediaPipe-Pose-FF6F00?style=for-the-badge&logo=google&logoColor=white)
+![ElevenLabs](https://img.shields.io/badge/ElevenLabs-TTS-10b981?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-4-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
+
+### Backend & Database
+
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Cloudinary](https://img.shields.io/badge/Cloudinary-Media-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)
+
+### Deployment
+
+![Vercel](https://img.shields.io/badge/Vercel-Frontend-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Render](https://img.shields.io/badge/Render-Backend-46E3B7?style=for-the-badge&logo=render&logoColor=white)
+
+</div>
+
+---
+
+<div align="center">
+
+## 📱 Demo
+
+### 🎬 Watch TalentTrack in Action
+
+</div>
+
+| Feature | Demo | Description |
+|---------|------|-------------|
+| 💪 **Normal Workout** | <img src="public/pushup.gif" width="200"/> | AI-powered rep counting with real-time form analysis |
+| 👻 **Ghost Mode** | <img src="public/ghost-mode-demo.gif" width="200"/> | Race against your previous best performance |
+| 🎯 **Test Mode** | ⏱️ | Timed challenges with leaderboards and badges |
+| 📊 **Analytics** | 📈 | Detailed performance metrics and progress tracking |
+
+---
+
+<div align="center">
+
+## 🎯 How It Works
+
+<div align="center">
+
+```mermaid
+graph LR
+    A[📹 Record Workout] --> B[🤖 AI Analysis]
+    B --> C[📊 Real-time Feedback]
+    C --> D[🎤 Voice Coaching]
+    D --> E[💾 Save Results]
+    E --> F[📈 Track Progress]
+    
+    style A fill:#10b981
+    style B fill:#6366f1
+    style C fill:#f59e0b
+    style D fill:#ec4899
+    style E fill:#8b5cf6
+    style F fill:#06b6d4
+```
+
+</div>
+
+<table>
+<tr>
+<td align="center" width="16.66%">
+<b>1️⃣</b><br/>
+📹<br/>
+<b>Record</b><br/>
+<sub>Use webcam or<br/>upload video</sub>
+</td>
+<td align="center" width="16.66%">
+<b>2️⃣</b><br/>
+🤖<br/>
+<b>AI Analysis</b><br/>
+<sub>MediaPipe detects<br/>pose & counts reps</sub>
+</td>
+<td align="center" width="16.66%">
+<b>3️⃣</b><br/>
+📊<br/>
+<b>Feedback</b><br/>
+<sub>See skeleton overlay<br/>& metrics</sub>
+</td>
+<td align="center" width="16.66%">
+<b>4️⃣</b><br/>
+🎤<br/>
+<b>Coaching</b><br/>
+<sub>Get encouragement<br/>every 2 seconds</sub>
+</td>
+<td align="center" width="16.66%">
+<b>5️⃣</b><br/>
+💾<br/>
+<b>Save</b><br/>
+<sub>Store workout data<br/>& videos</sub>
+</td>
+<td align="center" width="16.66%">
+<b>6️⃣</b><br/>
+📈<br/>
+<b>Progress</b><br/>
+<sub>View analytics &<br/>improvements</sub>
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+<div align="center">
+
+## 🎮 User Roles
+
+</div>
+
+<table>
+<tr>
+<td width="33%" align="center">
+
+### 🏃 Athlete
+
+<img src="https://img.icons8.com/fluency/96/000000/athlete.png" width="80"/>
+
+**Your Fitness Journey**
+
+✅ Complete AI-analyzed workouts  
+✅ Track personal progress  
+✅ Compete in challenges  
+✅ Connect with friends  
+✅ Earn badges & achievements  
+✅ Access voice coaching  
+
+</td>
+<td width="33%" align="center">
+
+### 👨‍🏫 Coach
+
+<img src="https://img.icons8.com/fluency/96/000000/coach.png" width="80"/>
+
+**Team Management**
+
+✅ Monitor athlete performance  
+✅ View detailed analytics  
+✅ Create training content  
+✅ Assign workouts  
+✅ Track team progress  
+✅ Provide feedback  
+
+</td>
+<td width="33%" align="center">
+
+### 🏛️ SAI Admin
+
+<img src="https://img.icons8.com/fluency/96/000000/admin-settings-male.png" width="80"/>
+
+**National Oversight**
+
+✅ National leaderboard  
+✅ Event scheduling  
+✅ Talent scouting  
+✅ Comprehensive analytics  
+✅ Multi-coach management  
+✅ Performance insights  
+
+</td>
+</tr>
+</table>
+
+---
+
+<div align="center">
+
+## 🔧 Configuration
+
+</div>
+
+### 🎤 Voice Coach Setup
+
+1. Get your ElevenLabs API key from [elevenlabs.io](https://elevenlabs.io)
+2. Create `.env.local` file:
+
+```env
+VITE_ELEVENLABS_API_KEY=your_api_key_here
+```
+
+3. Restart the dev server
+4. Go to Settings > Voice Coach to test
+
+📖 See [ELEVENLABS_SETUP.md](ELEVENLABS_SETUP.md) for detailed instructions.
+
+### 🗄️ MongoDB Setup
+
+Backend uses MongoDB for data storage. Configure in `.env`:
+
+```env
+MONGODB_URI=your_mongodb_connection_string
+```
+
+---
 
 ## 📚 Documentation
 
-### Technical Documentation
-- **[QUICK_START.md](QUICK_START.md)** - Setup and usage guide
-- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Testing procedures
-- **[WORKOUT_SETUP.md](WORKOUT_SETUP.md)** - Detailed workout configuration
+<div align="center">
 
+[![Setup Guide](https://img.shields.io/badge/📖-Setup_Guide-blue?style=for-the-badge)](ELEVENLABS_SETUP.md)
+[![SAI Features](https://img.shields.io/badge/🏛️-SAI_Features-purple?style=for-the-badge)](SAI_ADMIN_FEATURES.md)
+[![Face Verification](https://img.shields.io/badge/👤-Face_Verification-green?style=for-the-badge)](FACE_VERIFICATION_README.md)
 
-### Live Recording + Video Upload
-- 💪 **Push-ups** - Rep counting, elbow angle tracking, form validation
-- 🏋️ **Pull-ups** - Chin-over-bar detection, full range of motion
-- 🧘 **Sit-ups** - Torso angle tracking, proper form validation
-- 🦘 **Vertical Jump** - Jump height measurement, air time tracking
-- 🏃 **Shuttle Run** - Distance tracking, direction change detection
+</div>
 
-### Video Upload Only
-- 🤸 **Sit & Reach** - Flexibility measurement
-- 🦵 **Vertical Broad Jump** - Horizontal distance tracking
+---
 
-**All tests match the original Presidential Fitness Test standards with AI-enhanced accuracy.**
+<div align="center">
 
-## 🎨 Annotated Video Features
+## 🚀 Deployment
 
-All processed videos include:
-- **Skeleton Overlay**: Colored lines connecting body joints
-- **Joint Markers**: Dots at key body points
-- **Real-time Metrics**: Rep counter, angles, timer, state indicators
-- **Form Feedback**: Correct/incorrect rep indicators
-- **Color Coding**: Green (good form), Red (issues), Yellow (neutral)
+</div>
 
-## 🛠️ Technology Stack
+### Frontend (Vercel)
 
-### Frontend
-- React 18 + TypeScript
-- Vite (build tool)
-- Tailwind CSS + shadcn/ui
-- React Router
-- TanStack Query
-
-### Backend
-- Node.js + Express
-- Multer (file uploads)
-- CSV Parser
-- Child Process (Python integration)
-
-### ML Processing
-- Python 3.8+
-- MediaPipe (pose detection)
-- OpenCV (video processing)
-- NumPy (calculations)
-- Pandas (data handling)
-
-## 📁 Project Structure
-
-```
-project/
-├── src/                          # React frontend
-│   ├── components/workout/       # Workout UI components
-│   ├── services/                 # API services
-│   └── pages/                    # App pages
-├── server/                       # Node.js backend
-│   ├── server.js                 # Express server
-│   ├── uploads/                  # Temp video uploads
-│   └── outputs/                  # Processed results
-├── Talent Track py scripts/      # Python ML scripts
-│   ├── pushup_video.py
-│   ├── pullup_video.py
-│   ├── situp_video.py
-│   ├── verticaljump_video.py
-│   ├── shuttlerun_video.py
-│   └── requirements.txt
-└── Documentation/                # Guides and docs
+```bash
+vercel --prod
 ```
 
-## 🎥 How It Works
+### Backend (Render)
 
-1. **User uploads video or records live**
-2. **Backend receives video and spawns Python process**
-3. **Python script processes video:**
-   - Detects body landmarks with MediaPipe
-   - Tracks joint angles
-   - Counts reps/jumps
-   - Validates form
-   - Draws skeleton overlay
-   - Generates annotated video
-4. **Backend returns results to frontend**
-5. **User views annotated video with statistics**
+```bash
+git push origin main
+```
 
-## 📊 Output Data
+### Environment Variables
 
-### Annotated Video
-- MP4 format with skeleton overlay
-- Colored lines connecting joints
-- Joint markers (dots)
-- On-screen metrics (reps, angles, timer)
-- Form indicators
+```env
+VITE_ELEVENLABS_API_KEY=your_elevenlabs_key
+VITE_BACKEND_URL=your_backend_url
+MONGODB_URI=your_mongodb_uri
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
 
-### CSV Data
-Detailed metrics per rep:
-- Timestamps
-- Joint angles
-- Duration
-- Form validation
-- Performance statistics
+---
 
-## 🔧 Requirements
+<div align="center">
 
-- **Python 3.8+** - [Download](https://www.python.org/downloads/)
-- **Node.js 16+** - [Download](https://nodejs.org/)
-- **Webcam** (optional, for live recording)
+## 🤝 Contributing
 
-## 🎓 Usage
+We welcome contributions! Here's how:
 
-1. **Login** - Select Athlete role
-2. **Select Workout** - Choose from 7 workout types
-3. **Record/Upload** - Use camera or upload video
-4. **Wait for Processing** - AI analyzes your workout (30-60 seconds)
-5. **View Results** - Watch annotated video with skeleton overlay
-6. **Review Metrics** - Check reps, form, angles, and statistics
-7. **Submit** - Save workout to your profile
+</div>
+
+1. 🍴 **Fork** the repository
+2. 🌿 **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. 💾 **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. 📤 **Push** to the branch (`git push origin feature/amazing-feature`)
+5. 🎉 **Open** a Pull Request
+
+---
+
+<div align="center">
 
 ## 🐛 Troubleshooting
 
-### Backend Connection Issues
-```bash
-# Ensure backend is running
-cd server
-npm start
-```
+</div>
 
-### Python Errors
-```bash
-# Reinstall dependencies
-cd "Talent Track py scripts"
-pip install -r requirements.txt
-```
+<table>
+<tr>
+<td width="33%">
 
-### Camera Access
-- Allow camera permissions in browser
-- Try Chrome (recommended)
-- Close other apps using camera
+### 📹 Camera Not Working?
 
-See [WORKOUT_SETUP.md](WORKOUT_SETUP.md) for detailed troubleshooting.
+✅ Allow camera permissions  
+✅ Close other apps using camera  
+✅ Try Chrome (recommended)  
+✅ Check browser settings  
+
+</td>
+<td width="33%">
+
+### 🎤 Voice Coach Silent?
+
+✅ Check API key in `.env.local`  
+✅ Verify voice is enabled  
+✅ Clear browser cache  
+✅ Test with different voice  
+
+</td>
+<td width="33%">
+
+### 🔌 Backend Issues?
+
+✅ Ensure server is running  
+✅ Check `VITE_BACKEND_URL`  
+✅ Verify MongoDB connection  
+✅ Review server logs  
+
+</td>
+</tr>
+</table>
+
+---
 
 ## 📈 Performance
 
-- **Processing Time**: 30-60 seconds per video
-- **Video Length**: 30 seconds to 2 minutes recommended
-- **Resolution**: 720p or higher for best results
-- **CPU Usage**: Moderate (MediaPipe optimized)
+<div align="center">
 
-## 🎯 Tips for Best Results
+⚡ **Real-time Processing** - 30 FPS pose detection  
+🎥 **HD Recording** - Smooth 720p/1080p capture  
+💾 **CDN Storage** - Fast Cloudinary media delivery  
+📱 **Mobile Optimized** - Works on phones & tablets  
+🌐 **PWA Support** - Install as native app  
 
-- **Lighting**: Bright, even lighting
-- **Framing**: Full body visible in frame
-- **Background**: Plain, uncluttered
-- **Camera**: Steady, landscape orientation
-- **Clothing**: Fitted clothing for better detection
+</div>
 
-## 🚀 Future Enhancements
+---
 
-- Browser-based processing (TensorFlow.js)
-- Cloud storage integration
-- Social features (leaderboards, challenges)
-- Mobile app (React Native)
-- Advanced analytics dashboard
-- Video comparison tools
-- Progress tracking graphs
+<div align="center">
 
-## 📞 Support
+## 🎯 Roadmap
 
-For issues or questions:
-1. Check documentation in project root
-2. Review browser console (F12)
-3. Check server terminal for errors
-4. Verify all dependencies installed
+</div>
+
+<table>
+<tr>
+<td width="50%">
+
+### 🚀 Coming Soon
+
+- [ ] 🌍 Multi-language support
+- [ ] 📱 Native mobile apps (iOS/Android)
+- [ ] 🎮 VR workout mode
+- [ ] 🤖 Advanced AI coaching with ML insights
+
+</td>
+<td width="50%">
+
+### 💡 Future Plans
+
+- [ ] 🏆 Global competitions & tournaments
+- [ ] 👥 Team challenges & group workouts
+- [ ] 🎵 Music integration & rhythm sync
+- [ ] 🏥 Integration with health apps
+
+</td>
+</tr>
+</table>
+
+---
 
 ## 🙏 Credits
 
-- **MediaPipe** - Google's ML framework
-- **OpenCV** - Computer vision library
-- **React** - UI framework
-- **shadcn/ui** - Component library
+<div align="center">
+
+Built with ❤️ using amazing technologies:
+
+**MediaPipe** - Google's ML framework for pose detection  
+**ElevenLabs** - Ultra-realistic AI voice synthesis  
+**React** - Modern UI framework  
+**shadcn/ui** - Beautiful component library  
+**TailwindCSS** - Utility-first CSS framework  
+**MongoDB** - Flexible NoSQL database  
+**Cloudinary** - Media storage & optimization  
+
+</div>
+
+---
+
+<div align="center">
 
 ## 📄 License
 
 MIT License - See [LICENSE](LICENSE) for details
 
-## 🎉 Get Started
+</div>
 
-Ready to analyze your workouts? Run `start-full-app.bat` and start training! 💪
+---
+
+<div align="center">
+
+## 🎉 Ready to Transform Your Fitness?
+
+[![Launch App](https://img.shields.io/badge/🚀_Launch-TalentTrack_Now-10b981?style=for-the-badge&logo=vercel&logoColor=white)](https://rec-green.vercel.app)
+[![Star on GitHub](https://img.shields.io/badge/⭐_Star_on-GitHub-fbbf24?style=for-the-badge&logo=github&logoColor=black)](https://github.com/tharunkumardeveloper/rec)
+
+### 💪 Start Training • 👻 Race Your Ghost • 🏆 Beat Your Records
+
+---
+
+Made with 💪 and 🤖 by the **TalentTrack Team**
+
+[🌐 Website](https://rec-green.vercel.app) • [📂 GitHub](https://github.com/tharunkumardeveloper/rec) • [📖 Documentation](ELEVENLABS_SETUP.md)
+
+</div>
