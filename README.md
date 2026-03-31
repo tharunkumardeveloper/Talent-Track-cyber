@@ -1,26 +1,7 @@
 # Talent Track - AI-Powered Fitness Analysis
 
-> **Kiroween Hackathon 2025 - Resurrection Category** 💀  
-> Bringing the Presidential Physical Fitness Test back to life with modern AI
-
-Resurrecting the iconic 1960s Presidential Physical Fitness Test with cutting-edge AI pose detection, real-time form validation, and gamified challenges for today's digital generation.
-
-## 🎃 Hackathon Submission
-
-**Category**: Resurrection - Bringing dead technology back to life with modern innovation
-
-**The Resurrection Story**: The Presidential Physical Fitness Test (1966-2012) was a cornerstone of American youth fitness, testing millions of students annually. It died in 2012, replaced by less engaging alternatives. We're bringing it back with AI-powered analysis, making it accessible, engaging, and more effective than ever.
-
-**Kiro Usage**: Built entirely with Kiro AI assistance - vibe coding, specs, steering docs, and agent hooks enabled 62.5% faster development. See [KIRO_USAGE.md](KIRO_USAGE.md) for the complete story.
-
-**Demo Video**: [Watch on YouTube](YOUR_VIDEO_LINK_HERE) *(Update with your video link)*
-
-**Repository**: Open source under MIT License
-
-## 💀 The Resurrection
-
+##  Hackathon Submission
 ### What Died
-The **Presidential Physical Fitness Test** (1966-2012) was a nationwide program that tested American youth on:
 - Push-ups, Pull-ups, Sit-ups
 - Shuttle Run, Vertical Jump
 - Sit & Reach, Broad Jump
@@ -71,17 +52,11 @@ Open **http://localhost:5173** in your browser.
 
 ## 📚 Documentation
 
-### Hackathon Submission
-- **[RESURRECTION_STORY.md](RESURRECTION_STORY.md)** - The complete resurrection story (Presidential Fitness Test 1966-2012)
-- **[KIRO_USAGE.md](KIRO_USAGE.md)** - How Kiro AI powered development (62.5% faster)
-- **[HACKATHON_CHECKLIST.md](HACKATHON_CHECKLIST.md)** - Submission requirements
-
 ### Technical Documentation
 - **[QUICK_START.md](QUICK_START.md)** - Setup and usage guide
 - **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Testing procedures
 - **[WORKOUT_SETUP.md](WORKOUT_SETUP.md)** - Detailed workout configuration
 
-## 🎯 Presidential Fitness Tests (All 7)
 
 ### Live Recording + Video Upload
 - 💪 **Push-ups** - Rep counting, elbow angle tracking, form validation
@@ -259,29 +234,10 @@ For issues or questions:
 - **React** - UI framework
 - **shadcn/ui** - Component library
 
-## 🎯 Built with Kiro AI
-
-This project showcases the power of Kiro AI-assisted development:
-- ⚡ **62.5% faster development** (10.5 days vs 28 days)
-- 💬 **Vibe coding** for rapid prototyping and iteration
-- 📋 **Spec-driven development** for complex features (MediaPipe integration)
-- 🎯 **Steering docs** for consistent code quality and patterns
-- 🪝 **Agent hooks** for automated testing and validation
-
-**Read the complete story**: [KIRO_USAGE.md](KIRO_USAGE.md)
-
-**See the resurrection**: [RESURRECTION_STORY.md](RESURRECTION_STORY.md)
-
 ## 📄 License
 
 MIT License - See [LICENSE](LICENSE) for details
 
-This project is built with [Lovable](https://lovable.dev) and [Kiro](https://kiro.dev)
-
 ## 🎉 Get Started
 
 Ready to analyze your workouts? Run `start-full-app.bat` and start training! 💪
-
----
-
-**Project URL**: https://lovable.dev/projects/08737ad9-f564-47e3-807e-3374d954b89f
